@@ -30,6 +30,9 @@
     <ClCompile Include="flt_testmain.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="flt_token.c">
+      <Filter>Source Files\Felt\Parse</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="flt_stdinc.h">
@@ -37,6 +40,9 @@
     </ClInclude>
     <ClInclude Include="flt_parse.h">
       <Filter>Source Files\Felt\Parse</Filter>
+    </ClInclude>
+    <ClInclude Include="flt_list.h">
+      <Filter>Source Files\Felt\Utility</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

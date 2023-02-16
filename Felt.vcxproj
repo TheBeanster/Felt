@@ -140,8 +140,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="flt_testmain.c" />
+    <ClCompile Include="flt_token.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="flt_list.h" />
     <ClInclude Include="flt_parse.h" />
     <ClInclude Include="flt_stdinc.h" />
   </ItemGroup>
