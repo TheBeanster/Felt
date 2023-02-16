@@ -33,15 +33,30 @@
     <ClCompile Include="flt_token.c">
       <Filter>Source Files\Felt\Parse</Filter>
     </ClCompile>
+    <ClCompile Include="fltu_list.c">
+      <Filter>Source Files\Felt\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="flt_parse.c">
+      <Filter>Source Files\Felt\Parse</Filter>
+    </ClCompile>
+    <ClCompile Include="fltu_string.c">
+      <Filter>Source Files\Felt\Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="flt_stdinc.h">
+    <ClInclude Include="fltu_stdinc.h">
       <Filter>Source Files\Felt\Utility</Filter>
     </ClInclude>
     <ClInclude Include="flt_parse.h">
       <Filter>Source Files\Felt\Parse</Filter>
     </ClInclude>
-    <ClInclude Include="flt_list.h">
+    <ClInclude Include="fltu_list.h">
+      <Filter>Source Files\Felt\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="fltu_memory.h">
+      <Filter>Source Files\Felt\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="fltu_string.h">
       <Filter>Source Files\Felt\Utility</Filter>
     </ClInclude>
   </ItemGroup>

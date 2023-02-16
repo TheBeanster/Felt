@@ -139,13 +139,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="fltu_list.c" />
+    <ClCompile Include="fltu_string.c" />
+    <ClCompile Include="flt_parse.c" />
     <ClCompile Include="flt_testmain.c" />
     <ClCompile Include="flt_token.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="flt_list.h" />
+    <ClInclude Include="fltu_memory.h" />
+    <ClInclude Include="fltu_list.h" />
+    <ClInclude Include="fltu_string.h" />
     <ClInclude Include="flt_parse.h" />
-    <ClInclude Include="flt_stdinc.h" />
+    <ClInclude Include="fltu_stdinc.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
