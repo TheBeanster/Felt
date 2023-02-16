@@ -25,6 +25,9 @@
     <Filter Include="Source Files\Felt\Parse">
       <UniqueIdentifier>{490b7345-054e-4af9-8a02-e431debdcffd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Felt\CodeUnit">
+      <UniqueIdentifier>{0533fd57-b82a-421f-add4-25ef47dd4b0f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="flt_testmain.c">
@@ -58,6 +61,12 @@
     </ClInclude>
     <ClInclude Include="fltu_string.h">
       <Filter>Source Files\Felt\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="flt_code.h">
+      <Filter>Source Files\Felt\CodeUnit</Filter>
+    </ClInclude>
+    <ClInclude Include="flt_expression.h">
+      <Filter>Source Files\Felt\CodeUnit</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

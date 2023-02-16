@@ -40,24 +40,132 @@ static chartype check_chartype(const char c)
 
 
 
-static Flt_Bool push_alpha_token(
+static void push_alpha_token(
 	Flt_List* tokens,
 	const char* sourcecode,
 	int start,
 	int end
 )
 {
-	Flt_Token* token = Flt_ALLOC_TYPE(Flt_Token);
-	token->prev = token->next = NULL;
+	Flt_Token* token = Flt_MALLOC(sizeof(Flt_Token));
+	token->prev = NULL; token->next = NULL;
 	token->operatorid = Flt_OP_NULL;
 	token->separatorid = Flt_SP_NULL;
 
-	char* string = 
-	Flt_PushBackList(
-		tokens,
+	char* cutstring = Flt_CopyCutString(sourcecode, start, end - start);
+	token->keywordid = Flt_GetKeyword(cutstring);
+	if (token->keywordid == Flt_KW_NULL)
+	{
+		token->type = Flt_TT_IDENTIFIER;
+		token->string = cutstring;
+	} else
+	{
+		token->type = Flt_TT_KEYWORD;
+		token->string = NULL;
+		Flt_FREE(cutstring);
+	}
 
-	)
+	Flt_PushBackList(tokens,token);
 }
+
+
+
+static void push_numberliteral_token(
+	Flt_List* tokens,
+	const char* sourcecode,
+	int start,
+	int end
+)
+{
+	Flt_Token* token = Flt_MALLOC(sizeof(Flt_Token));
+	token->prev = token->next = NULL;
+	token->type = Flt_TT_NUMBERLITERAL;
+	token->keywordid = Flt_KW_NULL;
+	token->operatorid = Flt_OP_NULL;
+	token->separatorid = Flt_SP_NULL;
+
+	token->string = Flt_CopyCutString(sourcecode, start, end - start);
+	
+	Flt_PushBackList(tokens,token);
+}
+
+
+
+static Flt_Bool push_operator_token(
+	Flt_List* tokens,
+	const char* sourcecode,
+	int start,
+	int end
+)
+{
+	Flt_Token* token = Flt_MALLOC(sizeof(Flt_Token));
+	token->prev = token->next = NULL;
+	token->type = Flt_TT_OPERATOR;
+	token->keywordid = Flt_KW_NULL;
+	token->separatorid = Flt_SP_NULL;
+	token->string = NULL;
+
+	char* cutstring = Flt_CopyCutString(sourcecode, start, end - start);
+	token->operatorid = Flt_GetOperator(cutstring);
+	Flt_FREE(cutstring);
+
+	if (token->operatorid == Flt_OP_NULL) return Flt_FALSE;
+
+	Flt_PushBackList(tokens,token);
+	return Flt_TRUE;
+}
+
+
+
+static Flt_Bool push_separator_token(
+	Flt_List* tokens,
+	const char* sourcecode,
+	int start
+)
+{
+	Flt_Token* token = Flt_MALLOC(sizeof(Flt_Token));
+	token->prev = token->next = NULL;
+	token->type = Flt_TT_SEPARATOR;
+	token->keywordid = Flt_KW_NULL;
+	token->operatorid = Flt_OP_NULL;
+	token->string = NULL;
+
+	token->separatorid = Flt_GetSeparator(sourcecode[start]);
+	
+	if (token->separatorid == Flt_SP_NULL) return Flt_FALSE;
+
+	Flt_PushBackList(tokens,token);
+	return Flt_TRUE;
+}
+
+
+
+static void push_stringliteral_token(
+	Flt_List* tokens,
+	const char* sourcecode,
+	int start,
+	int end
+)
+{
+	Flt_Token* token = Flt_MALLOC(sizeof(Flt_Token));
+	token->prev = token->next = NULL;
+	token->type = Flt_TT_STRINGLITERAL;
+	token->keywordid = Flt_KW_NULL;
+	token->operatorid = Flt_OP_NULL;
+	token->separatorid = Flt_SP_NULL;
+	token->string = Flt_CopyCutString(sourcecode, start + 1, end - 1); // Don't include quotation marks
+
+	Flt_PushBackList(tokens,token);
+}
+
+static void push_endline_token(
+	Flt_List* tokens
+)
+{
+
+}
+
+
 
 
 
@@ -65,7 +173,7 @@ static Flt_Bool push_alpha_token(
 /// @param tokens Pointer to an empty list to put the tokens into.
 /// @param sourcecode Pointer to a string.
 /// @return Flt_TRUE if the sourcecode parsed succesfully, Flt_FALSE if not.
-static Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode)
+/*static*/Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode)
 {
 	// Reading tokens works by checking where a token starts and where it ends, character by character,
 	// by checking what the type of the current token is and how that token type would end.
@@ -76,9 +184,7 @@ static Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode
 
 	// Where the current token being read starts in the source buffer.
 	int	curtoken_begin = 0;
-	// Where the current token being read ends in the source buffer.
-	int	curtoken_end = 0;
-
+	
 	// The chartype of the current token being read. 
 	// This determines how it will check for token endings.
 	// Not that it is not a Flt_TokenType, since they can't be used when reading tokens,
@@ -115,8 +221,7 @@ static Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode
 			if (!(ctype == CT_ALPHA || ctype == CT_NUMBER))
 			{
 				// Text token ends when a character that isn't alpha or number appears
-				curtoken_end = i;
-				PUSH_TOKEN;
+				push_alpha_token(tokens, sourcecode, curtoken_begin, i);
 				tokenchange = Flt_TRUE;
 			}
 			break;
@@ -129,8 +234,8 @@ static Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode
 				if (ctype == CT_POINT)
 				{
 					// Two decimal points in one number error
-					printf("Two decimal points in one number!");
-					numerrors++;
+					printf("Two decimal points in one number!\n");
+					goto onerror;
 				}
 			} else
 			{
@@ -143,13 +248,12 @@ static Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode
 				if (ctype == CT_ALPHA)
 				{
 					// A letter or underscore directly after number
-					Flt_LOG_SYNTAXERROR(linenum, "A letter or underscore directly after number!");
+					printf("A letter or underscore directly after number!\n");
 					goto onerror;
 				}
 
 				// Number token ends
-				curtoken_end = i;
-				PUSH_TOKEN;
+				push_numberliteral_token(tokens, sourcecode, curtoken_begin, i);
 				tokenchange = Flt_TRUE;
 				numberliteral_decimal = Flt_FALSE;
 			}
@@ -161,9 +265,7 @@ static Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode
 				curtoken_type = CT_NUMBER;
 			} else
 			{
-				curtoken_type = CT_OPERATOR;
-				curtoken_end = i;
-				PUSH_TOKEN;
+				if (!push_operator_token(tokens, sourcecode, curtoken_begin, i)) goto onerror;
 				tokenchange = Flt_TRUE;
 			}
 			break;
@@ -177,8 +279,7 @@ static Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode
 			} else
 			{
 				// Operator token ends
-				curtoken_end = i;
-				PUSH_TOKEN;
+				if (!push_operator_token(tokens, sourcecode, curtoken_begin, i)) goto onerror;
 				tokenchange = Flt_TRUE;
 			}
 			break;
@@ -187,8 +288,7 @@ static Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode
 
 		case CT_SEPARATOR:
 			// Separators are always 1 character so push it immedietly
-			curtoken_end = i;
-			PUSH_TOKEN;
+			if (!push_separator_token(tokens, sourcecode, curtoken_begin)) goto onerror;
 			tokenchange = Flt_TRUE;
 			break;
 
@@ -203,8 +303,7 @@ static Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode
 			// String liteFlts end when another double quote is found
 			if (ctype == CT_QUOTE)
 			{
-				curtoken_end = i + 1; // Plus 1 to include closing "
-				PUSH_TOKEN;
+				push_stringliteral_token(tokens, sourcecode, curtoken_begin, i + 1);
 				tokenchange = Flt_TRUE;
 			}
 			break;
@@ -215,8 +314,6 @@ static Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode
 			// Comments end with endlines
 			if (ctype == CT_ENDLINE)
 			{
-				curtoken_end = i;
-				// Don't push it to the list
 				tokenchange = Flt_TRUE;
 			}
 			break;
@@ -225,8 +322,7 @@ static Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode
 
 		case CT_ENDLINE:
 			// Endlines are always 1 character so push it immedietly
-			curtoken_end = i;
-			PUSH_TOKEN;
+			push_endline_token(tokens);
 			tokenchange = Flt_TRUE;
 			break;
 
@@ -275,25 +371,23 @@ static Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode
 	// Check if the current type is a string liteFlt
 	if (curtoken_type == CT_QUOTE)
 	{
-		Flt_LOG_SYNTAXERROR(linenum, "String doesn't have closing quotes!");
-		numerrors++;
-		curtoken_end = i;
-		PUSH_TOKEN;
+		printf("String doesn't have closing quotes!\n");
+		goto onerror;
 	}
 
 
 
-	// Add an endline token at the end to make sure parsing works
-	Flt_PushBackList(
-		tokens,
-		(Flt_ListNode*)Flt_CreateToken(NULL, 0, 0, linenum, CT_ENDLINE)
-	);
+	// Add an endline token at the end to make sure parsing works even without one
+	push_endline_token(tokens);
 
+	
 
-
-	return numerrors;
+	return Flt_TRUE;
 
 onerror:
 
-	break;
+	Flt_ClearList(tokens, &Flt_DestroyToken);
+
+	return Flt_FALSE;
 }
+

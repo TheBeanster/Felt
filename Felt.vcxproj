@@ -149,6 +149,8 @@
     <ClInclude Include="fltu_memory.h" />
     <ClInclude Include="fltu_list.h" />
     <ClInclude Include="fltu_string.h" />
+    <ClInclude Include="flt_code.h" />
+    <ClInclude Include="flt_expression.h" />
     <ClInclude Include="flt_parse.h" />
     <ClInclude Include="fltu_stdinc.h" />
   </ItemGroup>

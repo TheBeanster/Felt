@@ -130,6 +130,14 @@ typedef struct Flt_Token
 	Flt_OperatorID	operatorid;
 	Flt_SeparatorID separatorid;
 
-	char* identifier;
+	char* string;
 } Flt_Token;
+
+void Flt_PrintToken(const Flt_Token* token);
+
+void Flt_DestroyToken(Flt_Token* token);
+
+
+
+Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode);
 

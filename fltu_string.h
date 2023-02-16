@@ -4,9 +4,14 @@
 
 
 
-int Flt_SectionStringCompare(
+Flt_Bool Flt_SectionStringCompare(
 	const char* parentstring,
-	int sectionbegin,
-	int sectionlen,
+	int			sectionstart,
 	const char* compare
+);
+
+char* Flt_CopyCutString(
+	const char* srcstring,
+	int start,
+	int length
 );
