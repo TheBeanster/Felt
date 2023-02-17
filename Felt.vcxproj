@@ -153,6 +153,7 @@
     <ClInclude Include="flt_expression.h" />
     <ClInclude Include="flt_parse.h" />
     <ClInclude Include="fltu_stdinc.h" />
+    <ClInclude Include="flt_state.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

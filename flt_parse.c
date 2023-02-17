@@ -109,7 +109,11 @@ static Flt_Bool push_operator_token(
 	token->operatorid = Flt_GetOperator(cutstring);
 	Flt_FREE(cutstring);
 
-	if (token->operatorid == Flt_OP_NULL) return Flt_FALSE;
+	if (token->operatorid == Flt_OP_NULL)
+	{
+		Flt_FREE(token);
+		return Flt_FALSE;
+	}
 
 	Flt_PushBackList(tokens,token);
 	return Flt_TRUE;
@@ -132,7 +136,11 @@ static Flt_Bool push_separator_token(
 
 	token->separatorid = Flt_GetSeparator(sourcecode[start]);
 	
-	if (token->separatorid == Flt_SP_NULL) return Flt_FALSE;
+	if (token->separatorid == Flt_SP_NULL)
+	{
+		Flt_FREE(token);
+		return Flt_FALSE;
+	}
 
 	Flt_PushBackList(tokens,token);
 	return Flt_TRUE;
@@ -162,7 +170,14 @@ static void push_endline_token(
 	Flt_List* tokens
 )
 {
-
+	Flt_Token* token = Flt_MALLOC(sizeof(Flt_Token));
+	token->prev = token->next = NULL;
+	token->type = Flt_TT_ENDLINE;
+	token->keywordid = Flt_KW_NULL;
+	token->operatorid = Flt_OP_NULL;
+	token->separatorid = Flt_SP_NULL;
+	token->string = NULL;
+	Flt_PushBackList(tokens,token);
 }
 
 

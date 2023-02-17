@@ -3,6 +3,8 @@
 #include "fltu_stdinc.h"
 #include "fltu_list.h"
 
+#include "flt_code.h"
+
 
 
 typedef char Flt_TokenType;
@@ -15,6 +17,7 @@ enum
 	Flt_TT_NUMBERLITERAL,
 	Flt_TT_STRINGLITERAL,
 	Flt_TT_IDENTIFIER,
+	Flt_TT_ENDLINE,
 };
 
 
@@ -141,3 +144,6 @@ void Flt_DestroyToken(Flt_Token* token);
 
 Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode);
 
+
+
+FltT_CodeBody* Flt_ParseSourceCode(const char* sourcecode);

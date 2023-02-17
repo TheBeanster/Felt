@@ -68,5 +68,8 @@
     <ClInclude Include="flt_expression.h">
       <Filter>Source Files\Felt\CodeUnit</Filter>
     </ClInclude>
+    <ClInclude Include="flt_state.h">
+      <Filter>Source Files\Felt\CodeUnit</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
