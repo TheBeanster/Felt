@@ -19,10 +19,10 @@ typedef enum
 
 
 
-typedef struct FltT_CodeBody
+typedef struct FltT_StatementBlock
 {
 	Flt_List statements;
-} FltT_CodeBody;
+} FltT_StatementBlock;
 
 
 
@@ -39,29 +39,29 @@ typedef struct FltT_StatementNode
 		struct
 		{
 			FltE_ExprNode* condition;
-			FltT_CodeBody* body_ontrue;
-			FltT_CodeBody* body_onfalse;
+			FltT_StatementBlock* body_ontrue;
+			FltT_StatementBlock* body_onfalse;
 		} stmt_if;
 		struct
 		{
 			FltE_ExprNode* init;
 			FltE_ExprNode* condition;
 			FltE_ExprNode* loop;
-			FltT_CodeBody* body;
+			FltT_StatementBlock* body;
 		} stmt_for;
 		struct
 		{
 			FltE_ExprNode* condition;
-			FltT_CodeBody* body;
+			FltT_StatementBlock* body;
 		} stmt_while;
 		struct
 		{
 			FltE_ExprNode* condition;
-			FltT_CodeBody* body;
+			FltT_StatementBlock* body;
 		} stmt_dowhile;
 		struct
 		{
-			FltT_CodeBody* body;
+			FltT_StatementBlock* body;
 		} stmt_scope;
 	};
 } FltT_StatementNode;

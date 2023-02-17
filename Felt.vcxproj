@@ -151,6 +151,7 @@
     <ClInclude Include="fltu_string.h" />
     <ClInclude Include="flt_code.h" />
     <ClInclude Include="flt_expression.h" />
+    <ClInclude Include="flt_object.h" />
     <ClInclude Include="flt_parse.h" />
     <ClInclude Include="fltu_stdinc.h" />
     <ClInclude Include="flt_state.h" />

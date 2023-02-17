@@ -6,6 +6,8 @@
 #include "fltu_memory.h"
 #include "fltu_string.h"
 
+#include "flt_code.h"
+
 
 
 typedef enum
@@ -179,7 +181,7 @@ static void push_endline_token(
 /// @param tokens Pointer to an empty list to put the tokens into.
 /// @param sourcecode Pointer to a string.
 /// @return Flt_TRUE if the sourcecode parsed succesfully, Flt_FALSE if not.
-/*static*/Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode)
+static Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode)
 {
 	// Reading tokens works by checking where a token starts and where it ends, character by character,
 	// by checking what the type of the current token is and how that token type would end.
@@ -200,7 +202,7 @@ static void push_endline_token(
 
 	Flt_Bool tokenchange = Flt_FALSE;
 
-	// When reading a numberliteFlt, check if a decimal point has been found.
+	// When reading a numberliteral, check if a decimal point has been found.
 	// If this is true and you find another decimal point, that will be an error.
 	Flt_Bool numberliteral_decimal = Flt_FALSE;
 
@@ -240,11 +242,8 @@ static void push_endline_token(
 					printf("Two decimal points in one number!\n");
 					goto onerror;
 				}
-			} else
-			{
-				if (ctype == CT_POINT)
-					numberliteral_decimal = Flt_TRUE;
-			}
+			} else if (ctype == CT_POINT)
+				numberliteral_decimal = Flt_TRUE;
 
 			if (!(ctype == CT_NUMBER || ctype == CT_POINT))
 			{
@@ -254,8 +253,6 @@ static void push_endline_token(
 					printf("A letter or underscore directly after number!\n");
 					goto onerror;
 				}
-
-				// Number token ends
 				push_numberliteral_token(tokens, sourcecode, curtoken_begin, i);
 				tokenchange = Flt_TRUE;
 				numberliteral_decimal = Flt_FALSE;
@@ -276,12 +273,9 @@ static void push_endline_token(
 
 
 		case CT_OPERATOR:
-			if (ctype == CT_OPERATOR)
+			if (ctype != CT_OPERATOR)
 			{
-
-			} else
-			{
-				// Operator token ends
+				// Operator ends when non operator token appears
 				if (!push_operator_token(tokens, sourcecode, curtoken_begin, i)) goto onerror;
 				tokenchange = Flt_TRUE;
 			}
@@ -303,7 +297,7 @@ static void push_endline_token(
 				printf("String doesn't have closing quotes!");
 				goto onerror;
 			}
-			// String liteFlts end when another double quote is found
+			// String literals end when another double quote is found
 			if (ctype == CT_QUOTE)
 			{
 				push_stringliteral_token(tokens, sourcecode, curtoken_begin, i + 1);
@@ -316,12 +310,8 @@ static void push_endline_token(
 		case CT_COMMENT:
 			// Comments end with endlines
 			if (ctype == CT_ENDLINE)
-			{
 				tokenchange = Flt_TRUE;
-			}
 			break;
-
-
 
 		case CT_ENDLINE:
 			// Endlines are always 1 character so push it immedietly
@@ -330,19 +320,12 @@ static void push_endline_token(
 			tokenchange = Flt_TRUE;
 			break;
 
-
-
 			// Default is error, it should be considered spacer
 		default:
 			// TODO Add warning about invalid characters
 		case CT_SPACER:
-			if (ctype == CT_SPACER)
-			{
-				// Only blank characters so far
-			} else
-			{
+			if (ctype != CT_SPACER)
 				tokenchange = Flt_TRUE;
-			}
 			break;
 		}
 
@@ -380,19 +363,126 @@ static void push_endline_token(
 		goto onerror;
 	}
 
-
-
 	// Add an endline token at the end to make sure parsing works even without one
 	push_endline_token(tokens);
-
-	
 
 	return Flt_TRUE;
 
 onerror:
-
 	Flt_ClearList(tokens, &Flt_DestroyToken);
-
 	return Flt_FALSE;
+}
+
+
+
+
+
+static FltE_ExprNode* parse_expression(
+	const Flt_Token* tokenbegin,
+	Flt_Token** expressionend
+)
+{
+	printf("Parsing expression\n");
+
+	Flt_Token* iterator = tokenbegin;
+	while (iterator)
+	{
+		
+
+		iterator = iterator->next;
+	}
+
+	*expressionend = tokenbegin->next->next;
+	return NULL;
+}
+
+
+
+
+
+static FltT_StatementNode* parse_if_statement(
+	const Flt_Token* tokenbegin,
+	Flt_Token** nextstatement
+)
+{
+	FltT_StatementNode* node = Flt_ALLOC_TYPE(FltT_StatementNode);
+	node->type = FltT_ST_IF;
+
+	Flt_Token* iterator = tokenbegin;
+	FltE_ExprNode* condition = parse_expression(iterator, &iterator);
+	node->stmt_if.condition = condition;
+	
+	if (iterator->keywordid != Flt_KW_THEN) // If token after condition isn't 'then'
+	{
+		printf("If statement condition expression doesn't end with the 'then' keyword\n");
+		printf("AAAAAAAAAAAAA\n");
+	}
+	
+	
+
+	*nextstatement = NULL;
+	return NULL;
+}
+
+
+
+static FltT_StatementNode* parse_statement(
+	const Flt_Token* tokenbegin,
+	Flt_Token** nextstatement
+)
+{
+	printf("Parsing statement starting with '");
+	Flt_PrintToken(tokenbegin);
+	printf("'\n");
+
+	switch (tokenbegin->keywordid)
+	{
+	case Flt_KW_IF: return parse_if_statement(tokenbegin, nextstatement); break;
+
+	default:
+		// If statement doesn't start with a keyword then it is an expression
+		break;
+	}
+
+	*nextstatement = NULL;
+	return NULL;
+}
+
+
+
+static FltT_StatementBlock* parse_statementblock(
+	const Flt_Token* tokenbegin
+)
+{
+	Flt_Token* iterator = tokenbegin;
+	while (iterator)
+	{
+		parse_statement(iterator, &iterator);
+	}
+}
+
+
+
+
+
+FltT_StatementBlock* Flt_ParseSourceCode(const char* sourcecode)
+{
+	Flt_List tokens = { 0 };
+	if (!parse_sourcecode_tokens(&tokens, sourcecode))
+	{
+		printf("Could not parse sourcecode!\n");
+		return NULL;
+	}
+
+	for (Flt_Token* i = tokens.begin; i != NULL; i = i->next)
+	{
+		Flt_PrintToken(i);
+		printf(" ", i->type);
+	}
+	printf("\n");
+
+	parse_statementblock(tokens.begin);
+
+	return NULL;
 }
 

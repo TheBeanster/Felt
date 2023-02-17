@@ -3,8 +3,6 @@
 #include "fltu_stdinc.h"
 #include "fltu_list.h"
 
-#include "flt_code.h"
-
 
 
 typedef char Flt_TokenType;
@@ -142,8 +140,4 @@ void Flt_DestroyToken(Flt_Token* token);
 
 
 
-Flt_Bool parse_sourcecode_tokens(Flt_List* tokens, const char* sourcecode);
-
-
-
-FltT_CodeBody* Flt_ParseSourceCode(const char* sourcecode);
+struct FltT_StatementBlock* Flt_ParseSourceCode(const char* sourcecode);

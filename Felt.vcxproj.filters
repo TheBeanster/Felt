@@ -19,14 +19,14 @@
     <Filter Include="Source Files\Felt\Utility">
       <UniqueIdentifier>{9689dfd3-bfbd-4e3e-9254-3ba708951dd1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Felt\Runtime">
-      <UniqueIdentifier>{9f360695-1367-444a-8b30-475db29cf92b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Felt\Parse">
       <UniqueIdentifier>{490b7345-054e-4af9-8a02-e431debdcffd}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Felt\CodeUnit">
       <UniqueIdentifier>{0533fd57-b82a-421f-add4-25ef47dd4b0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Felt\Objects">
+      <UniqueIdentifier>{ff60f137-e016-4f92-b1be-a7c10ce05d83}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -62,14 +62,17 @@
     <ClInclude Include="fltu_string.h">
       <Filter>Source Files\Felt\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="flt_code.h">
-      <Filter>Source Files\Felt\CodeUnit</Filter>
-    </ClInclude>
     <ClInclude Include="flt_expression.h">
       <Filter>Source Files\Felt\CodeUnit</Filter>
     </ClInclude>
     <ClInclude Include="flt_state.h">
       <Filter>Source Files\Felt\CodeUnit</Filter>
+    </ClInclude>
+    <ClInclude Include="flt_object.h">
+      <Filter>Source Files\Felt\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="flt_code.h">
+      <Filter>Source Files\Felt\Parse</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
