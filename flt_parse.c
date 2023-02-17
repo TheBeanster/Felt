@@ -40,6 +40,19 @@ static chartype check_chartype(const char c)
 
 
 
+static Flt_Token* create_token()
+{
+	Flt_Token* token = Flt_MALLOC(sizeof(Flt_Token));
+	token->prev = token->next = NULL;
+	token->type = Flt_TT_NULL;
+	token->keywordid = Flt_KW_NULL;
+	token->operatorid = Flt_OP_NULL;
+	token->separatorid = Flt_SP_NULL;
+	token->string = NULL;
+}
+
+
+
 static void push_alpha_token(
 	Flt_List* tokens,
 	const char* sourcecode,
@@ -47,10 +60,7 @@ static void push_alpha_token(
 	int end
 )
 {
-	Flt_Token* token = Flt_MALLOC(sizeof(Flt_Token));
-	token->prev = NULL; token->next = NULL;
-	token->operatorid = Flt_OP_NULL;
-	token->separatorid = Flt_SP_NULL;
+	Flt_Token* token = create_token();
 
 	char* cutstring = Flt_CopyCutString(sourcecode, start, end - start);
 	token->keywordid = Flt_GetKeyword(cutstring);
@@ -65,7 +75,7 @@ static void push_alpha_token(
 		Flt_FREE(cutstring);
 	}
 
-	Flt_PushBackList(tokens,token);
+	Flt_PushBackList(tokens, token);
 }
 
 
@@ -77,16 +87,12 @@ static void push_numberliteral_token(
 	int end
 )
 {
-	Flt_Token* token = Flt_MALLOC(sizeof(Flt_Token));
-	token->prev = token->next = NULL;
+	Flt_Token* token = create_token();
 	token->type = Flt_TT_NUMBERLITERAL;
-	token->keywordid = Flt_KW_NULL;
-	token->operatorid = Flt_OP_NULL;
-	token->separatorid = Flt_SP_NULL;
 
 	token->string = Flt_CopyCutString(sourcecode, start, end - start);
 	
-	Flt_PushBackList(tokens,token);
+	Flt_PushBackList(tokens, token);
 }
 
 
@@ -115,7 +121,7 @@ static Flt_Bool push_operator_token(
 		return Flt_FALSE;
 	}
 
-	Flt_PushBackList(tokens,token);
+	Flt_PushBackList(tokens, token);
 	return Flt_TRUE;
 }
 
@@ -127,22 +133,17 @@ static Flt_Bool push_separator_token(
 	int start
 )
 {
-	Flt_Token* token = Flt_MALLOC(sizeof(Flt_Token));
-	token->prev = token->next = NULL;
+	Flt_Token* token = create_token();
 	token->type = Flt_TT_SEPARATOR;
-	token->keywordid = Flt_KW_NULL;
-	token->operatorid = Flt_OP_NULL;
-	token->string = NULL;
 
 	token->separatorid = Flt_GetSeparator(sourcecode[start]);
-	
 	if (token->separatorid == Flt_SP_NULL)
 	{
 		Flt_FREE(token);
 		return Flt_FALSE;
 	}
 
-	Flt_PushBackList(tokens,token);
+	Flt_PushBackList(tokens, token);
 	return Flt_TRUE;
 }
 
@@ -155,14 +156,9 @@ static void push_stringliteral_token(
 	int end
 )
 {
-	Flt_Token* token = Flt_MALLOC(sizeof(Flt_Token));
-	token->prev = token->next = NULL;
+	Flt_Token* token = create_token();
 	token->type = Flt_TT_STRINGLITERAL;
-	token->keywordid = Flt_KW_NULL;
-	token->operatorid = Flt_OP_NULL;
-	token->separatorid = Flt_SP_NULL;
 	token->string = Flt_CopyCutString(sourcecode, start + 1, end - 1); // Don't include quotation marks
-
 	Flt_PushBackList(tokens,token);
 }
 
@@ -170,13 +166,8 @@ static void push_endline_token(
 	Flt_List* tokens
 )
 {
-	Flt_Token* token = Flt_MALLOC(sizeof(Flt_Token));
-	token->prev = token->next = NULL;
+	Flt_Token* token = create_token();
 	token->type = Flt_TT_ENDLINE;
-	token->keywordid = Flt_KW_NULL;
-	token->operatorid = Flt_OP_NULL;
-	token->separatorid = Flt_SP_NULL;
-	token->string = NULL;
 	Flt_PushBackList(tokens,token);
 }
 
@@ -222,9 +213,6 @@ static void push_endline_token(
 
 		char		c = sourcecode[i];
 		chartype	ctype = check_chartype(c);
-
-		if (ctype == CT_ENDLINE) linenum++;
-		tokenchange = Flt_FALSE;
 
 
 
@@ -337,6 +325,7 @@ static void push_endline_token(
 
 		case CT_ENDLINE:
 			// Endlines are always 1 character so push it immedietly
+			if (c == '\n') linenum++;
 			push_endline_token(tokens);
 			tokenchange = Flt_TRUE;
 			break;
@@ -375,6 +364,7 @@ static void push_endline_token(
 				curtoken_begin = i;
 				curtoken_type = ctype;
 			}
+			tokenchange = Flt_FALSE;
 		}
 
 		if (c == '\0') break;
