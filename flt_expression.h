@@ -39,7 +39,7 @@ typedef struct FltE_ExprNode
 			char* chars;
 			int len;
 		} str;
-		Flt_Function function;
+		Flt_Function* function;
 	};
 } FltE_ExprNode;
 
