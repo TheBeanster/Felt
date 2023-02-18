@@ -141,6 +141,7 @@
   <ItemGroup>
     <ClCompile Include="fltu_list.c" />
     <ClCompile Include="fltu_string.c" />
+    <ClCompile Include="flt_lex.c" />
     <ClCompile Include="flt_parse.c" />
     <ClCompile Include="flt_testmain.c" />
     <ClCompile Include="flt_token.c" />
@@ -151,6 +152,7 @@
     <ClInclude Include="fltu_string.h" />
     <ClInclude Include="flt_code.h" />
     <ClInclude Include="flt_expression.h" />
+    <ClInclude Include="flt_function.h" />
     <ClInclude Include="flt_object.h" />
     <ClInclude Include="flt_parse.h" />
     <ClInclude Include="fltu_stdinc.h" />

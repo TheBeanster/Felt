@@ -45,6 +45,9 @@
     <ClCompile Include="fltu_string.c">
       <Filter>Source Files\Felt\Utility</Filter>
     </ClCompile>
+    <ClCompile Include="flt_lex.c">
+      <Filter>Source Files\Felt\Parse</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="fltu_stdinc.h">
@@ -72,7 +75,10 @@
       <Filter>Source Files\Felt\Objects</Filter>
     </ClInclude>
     <ClInclude Include="flt_code.h">
-      <Filter>Source Files\Felt\Parse</Filter>
+      <Filter>Source Files\Felt\CodeUnit</Filter>
+    </ClInclude>
+    <ClInclude Include="flt_function.h">
+      <Filter>Source Files\Felt\CodeUnit</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
