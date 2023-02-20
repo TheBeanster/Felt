@@ -2,26 +2,21 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <ctype.h>
+#include <stdlib.h>
 #include "fltu_memory.h"
 
 #include "flt_code.h"
 
 
 
-static FltE_ExprNode* read_value_node(
+static FltE_ExprNode* read_numberliteral_node(
 	const Flt_Token* token
 )
 {
 	FltE_ExprNode* node = Flt_ALLOC_TYPE(FltE_ExprNode);
-	switch (token->type)
-	{
-	case Flt_TT_NUMBERLITERAL:
-
-		break;
-	default:
-		break;
-	}
+	node->type = FltE_ET_NUMBERLITERAL;
+	node->num = strtod(token->string, NULL);
+	return node;
 }
 
 
@@ -36,13 +31,13 @@ static FltE_ExprNode* parse_expression(
 	Flt_Token* iterator = exprbegin;
 	while (iterator)
 	{
-		switch (iterator->type)
+		switch (iterator->keywordid)
 		{
 		case Flt_KW_DO:
 		case Flt_KW_THEN:
 		case Flt_KW_END:
 			goto on_expr_end;
-			break;
+
 		default:
 			break;
 		}
@@ -51,7 +46,10 @@ static FltE_ExprNode* parse_expression(
 	}
 
 on_expr_end:
-	*exprend = exprbegin->next->next;
+	printf("Expression end on ");
+	Flt_PrintToken(iterator);
+	printf("\n");
+	*exprend = iterator;
 	return NULL;
 }
 
@@ -187,14 +185,14 @@ FltT_StatementBlock* Flt_ParseSourceCode(const char* sourcecode)
 
 	for (Flt_Token* i = tokens.begin; i != NULL; i = i->next)
 	{
-		Flt_PrintToken(i);
+		Flt_PrintTokenString(i);
 		printf(" ");
 	}
 	printf("\n");
 
-	//parse_statementblock(tokens.begin);
+	FltT_StatementBlock* block = parse_statementblock(tokens.begin);
 
-	return create_debug_statementblock();
+	return block;
 }
 
 

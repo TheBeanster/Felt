@@ -139,6 +139,8 @@ typedef struct Flt_Token
 
 void Flt_PrintToken(const Flt_Token* token);
 
+void Flt_PrintTokenString(const Flt_Token* token);
+
 void Flt_DestroyToken(Flt_Token* token);
 
 

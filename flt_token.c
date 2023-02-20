@@ -165,13 +165,31 @@ void Flt_PrintToken(const Flt_Token* token)
 
 	switch (token->type)
 	{
+	case Flt_TT_KEYWORD:		printf("%s", flt_keywordid_names[token->keywordid]); break;
+	case Flt_TT_OPERATOR:		printf("%s", flt_operatorid_names[token->operatorid]); break;
+	case Flt_TT_SEPARATOR:		printf("%s", flt_separatorid_names[token->separatorid]); break;
+	case Flt_TT_NUMBERLITERAL:	printf("%s", token->string); break;
+	case Flt_TT_STRINGLITERAL:	printf("\"%s\"", token->string); break;
+	case Flt_TT_IDENTIFIER:		printf("%s", token->string); break;
+	case Flt_TT_ENDLINE:		printf("TT_ENDLINE\n"); break;
+	default:
+		printf("invalid");
+		break;
+	}
+}
+void Flt_PrintTokenString(const Flt_Token* token)
+{
+	if (!token) return;
+
+	switch (token->type)
+	{
 	case Flt_TT_KEYWORD:		printf("%s", flt_keyword_strings[token->keywordid]); break;
 	case Flt_TT_OPERATOR:		printf("%s", flt_operator_strings[token->operatorid]); break;
 	case Flt_TT_SEPARATOR:		printf("%c", flt_separator_chars[token->separatorid]); break;
 	case Flt_TT_NUMBERLITERAL:	printf("%s", token->string); break;
 	case Flt_TT_STRINGLITERAL:	printf("\"%s\"", token->string); break;
 	case Flt_TT_IDENTIFIER:		printf("%s", token->string); break;
-	case Flt_TT_ENDLINE:		printf("\\n\n", token->string); break;
+	case Flt_TT_ENDLINE:		printf("\\n\n"); break;
 	default:
 		printf("invalid");
 		break;
