@@ -14,8 +14,11 @@ typedef enum
 	FltT_ST_FOR,
 	FltT_ST_WHILE,
 	FltT_ST_DOWHILE,
-	FltT_ST_SCOPE
+	FltT_ST_SCOPE,
+	FltT_NUM_STATEMENTTYPES
 } FltT_StatementNodeType;
+
+extern const char* flt_statementnodetype_names[FltT_NUM_STATEMENTTYPES];
 
 
 

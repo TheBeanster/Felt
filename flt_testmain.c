@@ -11,5 +11,7 @@ int main(int argc, char** argv)
 	Flt_List tokens = { 0 };
 	FltT_StatementBlock* block = Flt_ParseSourceCode("if 5 then print('hi') end");
 
+	Flt_PrintCodeTree(block);
+
 	return 0;
 }

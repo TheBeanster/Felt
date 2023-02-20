@@ -25,6 +25,24 @@ const char* flt_keyword_strings[Flt_NUM_KEYWORDS] =
 	"end",
 };
 
+const char* flt_keywordid_names[Flt_NUM_KEYWORDS] =
+{
+	"KW_IF",
+	"KW_THEN",
+	"KW_ELSE",
+	"KW_FOR",
+	"KW_DO",
+	"KW_WHILE",
+	
+	"KW_FUNCTION",
+	"KW_RETURN",
+	
+	"KW_FALSE",
+	"KW_TRUE",
+	
+	"KW_END",
+};
+
 Flt_KeywordID Flt_GetKeyword(const char* string)
 {
 	for (int i = 0; i < Flt_NUM_KEYWORDS; i++)
@@ -64,6 +82,35 @@ const char* flt_operator_strings[Flt_NUM_OPERATORS] =
 	"."
 };
 
+const char* flt_operatorid_names[Flt_NUM_OPERATORS] =
+{
+	"OP_ASSIGN",
+	"OP_ASSIGNADDITION",
+	"OP_ASSIGNSUBTRACTION",
+	"OP_ASSIGNMULTIPLICATION",
+	"OP_ASSIGNDIVISION",
+	
+	"OP_NOT",
+	"OP_AND",
+	"OP_OR",
+	"OP_XOR",
+	"OP_NEGATIVE",
+	
+	"OP_EQUALITY",
+	"OP_INEQUALITY",
+	"OP_LESS",
+	"OP_GREATER",
+	"OP_LESSEQUAL",
+	"OP_GREATEREQUAL",
+	
+	"OP_ADDITION",
+	"OP_SUBTRACTION",
+	"OP_MULTIPLICATION",
+	"OP_DIVISION",
+	
+	"OP_MEMBERACCESS",
+};
+
 Flt_OperatorID Flt_GetOperator(const char* string)
 {
 	for (int i = 0; i < Flt_NUM_OPERATORS; i++)
@@ -85,6 +132,17 @@ const char flt_separator_chars[Flt_NUM_SEPARATORS] =
 	'{',
 	'}',
 	','
+};
+
+const char* flt_separatorid_names[Flt_NUM_SEPARATORS] =
+{
+	"SP_LPAREN",
+	"SP_RPAREN",
+	"SP_LBRACKET",
+	"SP_RBRACKET",
+	"SP_LBRACE",
+	"SP_RBRACE",
+	"SP_COMMA",
 };
 
 Flt_SeparatorID Flt_GetSeparator(char c)

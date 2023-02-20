@@ -141,6 +141,7 @@
   <ItemGroup>
     <ClCompile Include="fltu_list.c" />
     <ClCompile Include="fltu_string.c" />
+    <ClCompile Include="flt_code.c" />
     <ClCompile Include="flt_lex.c" />
     <ClCompile Include="flt_parse.c" />
     <ClCompile Include="flt_testmain.c" />

@@ -42,6 +42,7 @@ enum
 	Flt_KW_NULL = -1, // Invalid or non keyword
 };
 extern const char* flt_keyword_strings[Flt_NUM_KEYWORDS];
+extern const char* flt_keywordid_names[Flt_NUM_KEYWORDS];
 
 /// Checks the keyword id of a string.
 /// @param string String to check
@@ -83,6 +84,7 @@ enum
 	Flt_OP_NULL = -1,				// Invalid or non operator
 };
 extern const char* flt_operator_strings[Flt_NUM_OPERATORS];
+extern const char* flt_operatorid_names[Flt_NUM_OPERATORS];
 
 /// Checks the operator id of a string.
 /// @param string String to check
@@ -112,6 +114,7 @@ enum
 	Flt_SP_NULL = -1,	// Invalid or non separator
 };
 extern const char flt_separator_chars[Flt_NUM_SEPARATORS];
+extern const char* flt_separatorid_names[Flt_NUM_SEPARATORS];
 
 /// Checks the separator id of a char.
 /// @param c Character to check
@@ -143,3 +146,7 @@ void Flt_DestroyToken(Flt_Token* token);
 Flt_Bool Flt_ParseSourcecodeTokens(Flt_List* tokens, const char* sourcecode);
 
 struct FltT_StatementBlock* Flt_ParseSourceCode(const char* sourcecode);
+
+
+
+void Flt_PrintCodeTree(const struct FltT_StatementBlock* code);

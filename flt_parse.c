@@ -4,28 +4,54 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "fltu_memory.h"
-#include "fltu_string.h"
 
 #include "flt_code.h"
 
 
 
+static FltE_ExprNode* read_value_node(
+	const Flt_Token* token
+)
+{
+	FltE_ExprNode* node = Flt_ALLOC_TYPE(FltE_ExprNode);
+	switch (token->type)
+	{
+	case Flt_TT_NUMBERLITERAL:
+
+		break;
+	default:
+		break;
+	}
+}
+
+
+
 static FltE_ExprNode* parse_expression(
-	const Flt_Token* tokenbegin,
-	Flt_Token** expressionend
+	const Flt_Token* exprbegin,
+	Flt_Token** exprend
 )
 {
 	printf("Parsing expression\n");
 
-	Flt_Token* iterator = tokenbegin;
+	Flt_Token* iterator = exprbegin;
 	while (iterator)
 	{
-		
+		switch (iterator->type)
+		{
+		case Flt_KW_DO:
+		case Flt_KW_THEN:
+		case Flt_KW_END:
+			goto on_expr_end;
+			break;
+		default:
+			break;
+		}
 
 		iterator = iterator->next;
 	}
 
-	*expressionend = tokenbegin->next->next;
+on_expr_end:
+	*exprend = exprbegin->next->next;
 	return NULL;
 }
 
@@ -98,6 +124,58 @@ static FltT_StatementBlock* parse_statementblock(
 
 
 
+
+
+
+
+
+
+static FltE_ExprNode* create_debug_expr_assignment()
+{
+	FltE_ExprNode* node = Flt_ALLOC_TYPE(FltE_ExprNode);
+	node->type = FltE_ET_OPERATOR;
+	node->op.id = Flt_OP_ASSIGN;
+	FltE_ExprNode* nodel = Flt_ALLOC_TYPE(FltE_ExprNode);
+	nodel->type = FltE_ET_VARIABLE;
+	nodel->variable = "varname";
+
+	FltE_ExprNode* noder = Flt_ALLOC_TYPE(FltE_ExprNode);
+	noder->type = FltE_ET_OPERATOR;
+	noder->op.id = Flt_OP_ADDITION;
+
+	FltE_ExprNode* noderl = Flt_ALLOC_TYPE(FltE_ExprNode);
+	noderl->type = FltE_ET_NUMBERLITERAL;
+	noderl->num = 5;
+	FltE_ExprNode* noderr = Flt_ALLOC_TYPE(FltE_ExprNode);
+	noderr->type = FltE_ET_NUMBERLITERAL;
+	noderr->num = 7;
+	noder->op.left = noderl;
+	noder->op.right = noderr;
+
+	node->op.left = nodel;
+	node->op.right = noder;
+	return node;
+}
+
+static FltT_StatementBlock* create_debug_statementblock()
+{
+	FltT_StatementBlock* block = Flt_ALLOC_TYPE(FltT_StatementBlock);
+	
+	FltT_StatementNode* node1 = Flt_ALLOC_TYPE(FltT_StatementNode);
+	node1->type = FltT_ST_EXPRESSION;
+	node1->stmt_expr.expression = create_debug_expr_assignment();
+	FltT_StatementNode* node2 = Flt_ALLOC_TYPE(FltT_StatementNode);
+	node2->type = FltT_ST_IF;
+	node2->stmt_if.condition = create_debug_expr_assignment();
+
+	Flt_PushBackList(&block->statements, node1);
+	Flt_PushBackList(&block->statements, node2);
+}
+
+
+
+
+
 FltT_StatementBlock* Flt_ParseSourceCode(const char* sourcecode)
 {
 	Flt_List tokens = { 0 };
@@ -114,8 +192,102 @@ FltT_StatementBlock* Flt_ParseSourceCode(const char* sourcecode)
 	}
 	printf("\n");
 
-	parse_statementblock(tokens.begin);
+	//parse_statementblock(tokens.begin);
 
-	return NULL;
+	return create_debug_statementblock();
+}
+
+
+
+
+
+
+
+static void print_indent(int depth)
+{
+	for (int i = 0; i < depth; i++)
+	{
+		printf("  ");
+	}
+}
+#define indent print_indent(depth)
+
+
+
+static void print_exprnode(const FltE_ExprNode* expr, int depth)
+{
+	if (!expr) return;
+
+	switch (expr->type)
+	{
+	case FltE_ET_OPERATOR:
+		indent; printf("%s: {\n", flt_operatorid_names[expr->op.id]);
+		print_exprnode(expr->op.left, depth + 1);
+		print_exprnode(expr->op.right, depth + 1);
+		indent; printf("}\n");
+		break;
+
+	case FltE_ET_NUMBERLITERAL: indent; printf("%f\n", expr->num); break;
+	case FltE_ET_STRINGLITERAL: indent; printf("\"%s\"\n", expr->str); break;
+	case FltE_ET_VARIABLE:		indent; printf("%s\n", expr->variable); break;
+
+	default:
+		break;
+	}
+}
+
+static void print_expression(const FltE_ExprNode* expr, const char* name, int depth)
+{
+	indent; printf("%s: {\n", name);
+	print_exprnode(expr, depth + 1);
+	indent; printf("}\n");
+}
+
+
+
+static void print_statementblock(const FltT_StatementBlock* block, const char* name, int depth);
+
+static void print_statement(const FltT_StatementNode* stmt, int depth)
+{
+	indent; printf("%s: {\n", flt_statementnodetype_names[stmt->type]);
+	switch (stmt->type)
+	{
+	case FltT_ST_EXPRESSION:
+		print_expression(stmt->stmt_expr.expression, "expr", depth + 1);
+		break;
+
+	case FltT_ST_IF:
+		print_expression(stmt->stmt_if.condition, "condition", depth + 1);
+		print_statementblock(stmt->stmt_if.body_ontrue, "ontrue", depth + 1);
+		print_statementblock(stmt->stmt_if.body_onfalse, "onfalse", depth + 1);
+		break;
+
+	default:
+		break;
+	}
+	indent; printf("}\n");
+}
+
+static void print_statementblock(const FltT_StatementBlock* block, const char* name, int depth)
+{
+	if (!block) return;
+
+	indent; printf("%s: {\n", name);
+	FltT_StatementNode* iterator = block->statements.begin;
+	while (iterator)
+	{
+		print_statement(iterator, depth + 1);
+		iterator = iterator->next;
+	}
+	indent; printf("}\n");
+}
+
+
+
+void Flt_PrintCodeTree(const FltT_StatementBlock* code)
+{
+	printf("code: {\n");
+	print_statementblock(code, "top", 1);
+	printf("}\n");
 }
 

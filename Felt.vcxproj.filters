@@ -48,6 +48,9 @@
     <ClCompile Include="flt_lex.c">
       <Filter>Source Files\Felt\Parse</Filter>
     </ClCompile>
+    <ClCompile Include="flt_code.c">
+      <Filter>Source Files\Felt\CodeUnit</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="fltu_stdinc.h">

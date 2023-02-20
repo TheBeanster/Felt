@@ -19,6 +19,7 @@ enum
 	FltE_ET_OBJECT,
 	FltE_ET_VARIABLE,
 	FltE_ET_FUNCTIONCALL
+	// TODO It might be possible to have a kind of 'ET_REFRENCE' or something for variable assignments
 };
 
 typedef struct FltE_ExprNode
@@ -29,7 +30,7 @@ typedef struct FltE_ExprNode
 	{
 		struct
 		{
-			Flt_OperatorID op;
+			Flt_OperatorID id;
 			struct FltE_ExprNode* left;
 			struct FltE_ExprNode* right;
 		} op;
@@ -40,6 +41,7 @@ typedef struct FltE_ExprNode
 			int len;
 		} str;
 		Flt_Function* function;
+		char* variable;
 	};
 } FltE_ExprNode;
 
