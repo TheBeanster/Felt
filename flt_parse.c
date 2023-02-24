@@ -31,14 +31,14 @@ static FltE_ExprNode* parse_expression(
 	Flt_Token* iterator = exprbegin;
 	while (iterator)
 	{
-		switch (iterator->keywordid)
+		switch (iterator->type)
 		{
-		case Flt_KW_DO:
-		case Flt_KW_THEN:
-		case Flt_KW_END:
-			goto on_expr_end;
+		case Flt_TT_KEYWORD:
 
-		default:
+			break;
+
+		case Flt_TT_SEPARATOR:
+
 			break;
 		}
 
@@ -72,7 +72,6 @@ static FltT_StatementNode* parse_if_statement(
 	if (iterator->keywordid != Flt_KW_THEN) // If token after condition isn't 'then'
 	{
 		printf("If statement condition expression doesn't end with the 'then' keyword\n");
-		printf("AAAAAAAAAAAAA\n");
 	}
 	
 	
@@ -194,6 +193,17 @@ FltT_StatementBlock* Flt_ParseSourceCode(const char* sourcecode)
 
 	return block;
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
