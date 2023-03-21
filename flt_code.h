@@ -22,10 +22,10 @@ extern const char* flt_statementnodetype_names[FltT_NUM_STATEMENTTYPES];
 
 
 
-typedef struct FltT_StatementBlock
+typedef struct Flt_StatementBlock
 {
 	Flt_List statements;
-} FltT_StatementBlock;
+} Flt_StatementBlock;
 
 
 
@@ -37,34 +37,34 @@ typedef struct FltT_StatementNode
 	{
 		struct
 		{
-			FltE_ExprNode* expression;
+			Flt_ExprNode* expression;
 		} stmt_expr;
 		struct
 		{
-			FltE_ExprNode* condition;
-			FltT_StatementBlock* body_ontrue;
-			FltT_StatementBlock* body_onfalse;
+			Flt_ExprNode* condition;
+			Flt_StatementBlock* body_ontrue;
+			Flt_StatementBlock* body_onfalse;
 		} stmt_if;
 		struct
 		{
-			FltE_ExprNode* init;
-			FltE_ExprNode* condition;
-			FltE_ExprNode* loop;
-			FltT_StatementBlock* body;
+			Flt_ExprNode* init;
+			Flt_ExprNode* condition;
+			Flt_ExprNode* loop;
+			Flt_StatementBlock* body;
 		} stmt_for;
 		struct
 		{
-			FltE_ExprNode* condition;
-			FltT_StatementBlock* body;
+			Flt_ExprNode* condition;
+			Flt_StatementBlock* body;
 		} stmt_while;
 		struct
 		{
-			FltE_ExprNode* condition;
-			FltT_StatementBlock* body;
+			Flt_ExprNode* condition;
+			Flt_StatementBlock* body;
 		} stmt_dowhile;
 		struct
 		{
-			FltT_StatementBlock* body;
+			Flt_StatementBlock* body;
 		} stmt_scope;
 	};
 } FltT_StatementNode;

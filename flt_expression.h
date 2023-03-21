@@ -9,30 +9,30 @@
 
 
 
-typedef char FltE_ExprNodeType;
+typedef char Flt_ExprNodeType;
 enum
 {
-	FltE_ET_OPERATOR,
-	FltE_ET_NUMBERLITERAL,
-	FltE_ET_STRINGLITERAL,
-	FltE_ET_LAMBDA,
-	FltE_ET_OBJECT,
-	FltE_ET_VARIABLE,
-	FltE_ET_FUNCTIONCALL
+	Flt_ET_OPERATOR,
+	Flt_ET_NUMBERLITERAL,
+	Flt_ET_STRINGLITERAL,
+	Flt_ET_LAMBDA,
+	Flt_ET_OBJECT,
+	Flt_ET_VARIABLE,
+	Flt_ET_FUNCTIONCALL
 	// TODO It might be possible to have a kind of 'ET_REFRENCE' or something for variable assignments
 };
 
-typedef struct FltE_ExprNode
+typedef struct Flt_ExprNode
 {
-	FltE_ExprNodeType type;
+	Flt_ExprNodeType type;
 	
 	union
 	{
 		struct
 		{
 			Flt_OperatorID id;
-			struct FltE_ExprNode* left;
-			struct FltE_ExprNode* right;
+			struct Flt_ExprNode* left;
+			struct Flt_ExprNode* right;
 		} op;
 		double num;
 		struct
@@ -43,5 +43,5 @@ typedef struct FltE_ExprNode
 		Flt_Function* function;
 		char* variable;
 	};
-} FltE_ExprNode;
+} Flt_ExprNode;
 

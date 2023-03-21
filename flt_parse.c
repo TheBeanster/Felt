@@ -9,24 +9,26 @@
 
 
 
-static FltE_ExprNode* read_numberliteral_node(
+static Flt_ExprNode* read_numberliteral_node(
 	const Flt_Token* token
 )
 {
-	FltE_ExprNode* node = Flt_ALLOC_TYPE(FltE_ExprNode);
-	node->type = FltE_ET_NUMBERLITERAL;
+	Flt_ExprNode* node = Flt_ALLOC_TYPE(Flt_ExprNode);
+	node->type = Flt_ET_NUMBERLITERAL;
 	node->num = strtod(token->string, NULL);
 	return node;
 }
 
 
 
-static FltE_ExprNode* parse_expression(
+static Flt_ExprNode* parse_expression(
 	const Flt_Token* exprbegin,
 	Flt_Token** exprend
 )
 {
 	printf("Parsing expression\n");
+
+	Flt_ExprNode* expr = Flt_ALLOC_TYPE(Flt_ExprNode);
 
 	Flt_Token* iterator = exprbegin;
 	while (iterator)
@@ -34,7 +36,7 @@ static FltE_ExprNode* parse_expression(
 		switch (iterator->type)
 		{
 		case Flt_TT_KEYWORD:
-
+			if (iterator->keywordid != Flt_KW_TRUE || iterator->keywordid != Flt_KW_FALSE) goto on_expr_end;
 			break;
 
 		case Flt_TT_SEPARATOR:
@@ -50,9 +52,28 @@ on_expr_end:
 	Flt_PrintToken(iterator);
 	printf("\n");
 	*exprend = iterator;
-	return NULL;
+	return expr;
 }
 
+
+
+
+static FltT_StatementNode* parse_expression_statement(
+	const Flt_Token* tokenbegin,
+	Flt_Token** nextstatement
+)
+{
+	FltT_StatementNode* node = Flt_ALLOC_TYPE(FltT_StatementNode);
+	node->type = FltT_ST_EXPRESSION;
+	node->stmt_expr.expression = parse_expression(tokenbegin, nextstatement);
+	if (!node->stmt_expr.expression)
+	{
+		printf("Couldn't parse expression statement\n");
+		Flt_FREE(node);
+		return NULL;
+	}
+	return node;
+}
 
 
 
@@ -65,19 +86,20 @@ static FltT_StatementNode* parse_if_statement(
 	FltT_StatementNode* node = Flt_ALLOC_TYPE(FltT_StatementNode);
 	node->type = FltT_ST_IF;
 
-	Flt_Token* iterator = tokenbegin;
-	FltE_ExprNode* condition = parse_expression(iterator, &iterator);
-	node->stmt_if.condition = condition;
+	Flt_Token* conditiontoken = tokenbegin->next;
+	Flt_ExprNode* condition = parse_expression(conditiontoken, &conditiontoken);
 	
-	if (iterator->keywordid != Flt_KW_THEN) // If token after condition isn't 'then'
+	if (conditiontoken->keywordid != Flt_KW_THEN || condition == NULL) // If token after condition isn't 'then'
 	{
 		printf("If statement condition expression doesn't end with the 'then' keyword\n");
+		Flt_FREE(node);
+		return NULL;
 	}
 	
-	
+	node->stmt_if.condition = condition;
 
-	*nextstatement = NULL;
-	return NULL;
+	*nextstatement = conditiontoken->next;
+	return node;
 }
 
 
@@ -91,12 +113,22 @@ static FltT_StatementNode* parse_statement(
 	Flt_PrintToken(tokenbegin);
 	printf("'\n");
 
+	FltT_StatementNode* node = NULL;
+
 	switch (tokenbegin->keywordid)
 	{
-	case Flt_KW_IF: return parse_if_statement(tokenbegin, nextstatement); break;
+	case Flt_KW_IF: 
+		node = parse_if_statement(tokenbegin, nextstatement);
+		if (!node)
+		{
+			printf("Failed to parse if statement\n");
+			return NULL;
+		}
+		return node;
 
 	default:
 		// If statement doesn't start with a keyword then it is an expression
+		parse_expression_statement(tokenbegin, nextstatement);
 		break;
 	}
 
@@ -106,15 +138,26 @@ static FltT_StatementNode* parse_statement(
 
 
 
-static FltT_StatementBlock* parse_statementblock(
+static Flt_StatementBlock* parse_statementblock(
 	const Flt_Token* tokenbegin
 )
 {
+	Flt_StatementBlock* block = Flt_ALLOC_TYPE(Flt_StatementBlock);
+	
 	Flt_Token* iterator = tokenbegin;
 	while (iterator)
 	{
-		parse_statement(iterator, &iterator);
+		FltT_StatementNode* node = parse_statement(iterator, &iterator);
+		if (!node) goto on_fail;
+		Flt_PushBackList(&block->statements, node);
 	}
+
+	return block;
+
+on_fail:
+	//Flt_ClearList(&block->statements, Destr)
+	Flt_FREE(block);
+	return NULL;
 }
 
 
@@ -127,24 +170,24 @@ static FltT_StatementBlock* parse_statementblock(
 
 
 
-static FltE_ExprNode* create_debug_expr_assignment()
+static Flt_ExprNode* create_debug_expr_assignment()
 {
-	FltE_ExprNode* node = Flt_ALLOC_TYPE(FltE_ExprNode);
-	node->type = FltE_ET_OPERATOR;
+	Flt_ExprNode* node = Flt_ALLOC_TYPE(Flt_ExprNode);
+	node->type = Flt_ET_OPERATOR;
 	node->op.id = Flt_OP_ASSIGN;
-	FltE_ExprNode* nodel = Flt_ALLOC_TYPE(FltE_ExprNode);
-	nodel->type = FltE_ET_VARIABLE;
+	Flt_ExprNode* nodel = Flt_ALLOC_TYPE(Flt_ExprNode);
+	nodel->type = Flt_ET_VARIABLE;
 	nodel->variable = "varname";
 
-	FltE_ExprNode* noder = Flt_ALLOC_TYPE(FltE_ExprNode);
-	noder->type = FltE_ET_OPERATOR;
+	Flt_ExprNode* noder = Flt_ALLOC_TYPE(Flt_ExprNode);
+	noder->type = Flt_ET_OPERATOR;
 	noder->op.id = Flt_OP_ADDITION;
 
-	FltE_ExprNode* noderl = Flt_ALLOC_TYPE(FltE_ExprNode);
-	noderl->type = FltE_ET_NUMBERLITERAL;
+	Flt_ExprNode* noderl = Flt_ALLOC_TYPE(Flt_ExprNode);
+	noderl->type = Flt_ET_NUMBERLITERAL;
 	noderl->num = 5;
-	FltE_ExprNode* noderr = Flt_ALLOC_TYPE(FltE_ExprNode);
-	noderr->type = FltE_ET_NUMBERLITERAL;
+	Flt_ExprNode* noderr = Flt_ALLOC_TYPE(Flt_ExprNode);
+	noderr->type = Flt_ET_NUMBERLITERAL;
 	noderr->num = 7;
 	noder->op.left = noderl;
 	noder->op.right = noderr;
@@ -154,9 +197,9 @@ static FltE_ExprNode* create_debug_expr_assignment()
 	return node;
 }
 
-static FltT_StatementBlock* create_debug_statementblock()
+static Flt_StatementBlock* create_debug_statementblock()
 {
-	FltT_StatementBlock* block = Flt_ALLOC_TYPE(FltT_StatementBlock);
+	Flt_StatementBlock* block = Flt_ALLOC_TYPE(Flt_StatementBlock);
 	
 	FltT_StatementNode* node1 = Flt_ALLOC_TYPE(FltT_StatementNode);
 	node1->type = FltT_ST_EXPRESSION;
@@ -173,7 +216,7 @@ static FltT_StatementBlock* create_debug_statementblock()
 
 
 
-FltT_StatementBlock* Flt_ParseSourceCode(const char* sourcecode)
+Flt_StatementBlock* Flt_ParseSourceCode(const char* sourcecode)
 {
 	Flt_List tokens = { 0 };
 	if (!Flt_ParseSourcecodeTokens(&tokens, sourcecode))
@@ -189,7 +232,7 @@ FltT_StatementBlock* Flt_ParseSourceCode(const char* sourcecode)
 	}
 	printf("\n");
 
-	FltT_StatementBlock* block = parse_statementblock(tokens.begin);
+	Flt_StatementBlock* block = parse_statementblock(tokens.begin);
 
 	return block;
 }
@@ -222,29 +265,29 @@ static void print_indent(int depth)
 
 
 
-static void print_exprnode(const FltE_ExprNode* expr, int depth)
+static void print_exprnode(const Flt_ExprNode* expr, int depth)
 {
 	if (!expr) return;
 
 	switch (expr->type)
 	{
-	case FltE_ET_OPERATOR:
+	case Flt_ET_OPERATOR:
 		indent; printf("%s: {\n", flt_operatorid_names[expr->op.id]);
 		print_exprnode(expr->op.left, depth + 1);
 		print_exprnode(expr->op.right, depth + 1);
 		indent; printf("}\n");
 		break;
 
-	case FltE_ET_NUMBERLITERAL: indent; printf("%f\n", expr->num); break;
-	case FltE_ET_STRINGLITERAL: indent; printf("\"%s\"\n", expr->str); break;
-	case FltE_ET_VARIABLE:		indent; printf("%s\n", expr->variable); break;
+	case Flt_ET_NUMBERLITERAL: indent; printf("%f\n", expr->num); break;
+	case Flt_ET_STRINGLITERAL: indent; printf("\"%s\"\n", expr->str); break;
+	case Flt_ET_VARIABLE:		indent; printf("%s\n", expr->variable); break;
 
 	default:
 		break;
 	}
 }
 
-static void print_expression(const FltE_ExprNode* expr, const char* name, int depth)
+static void print_expression(const Flt_ExprNode* expr, const char* name, int depth)
 {
 	indent; printf("%s: {\n", name);
 	print_exprnode(expr, depth + 1);
@@ -253,7 +296,7 @@ static void print_expression(const FltE_ExprNode* expr, const char* name, int de
 
 
 
-static void print_statementblock(const FltT_StatementBlock* block, const char* name, int depth);
+static void print_statementblock(const Flt_StatementBlock* block, const char* name, int depth);
 
 static void print_statement(const FltT_StatementNode* stmt, int depth)
 {
@@ -276,7 +319,7 @@ static void print_statement(const FltT_StatementNode* stmt, int depth)
 	indent; printf("}\n");
 }
 
-static void print_statementblock(const FltT_StatementBlock* block, const char* name, int depth)
+static void print_statementblock(const Flt_StatementBlock* block, const char* name, int depth)
 {
 	if (!block) return;
 
@@ -292,7 +335,7 @@ static void print_statementblock(const FltT_StatementBlock* block, const char* n
 
 
 
-void Flt_PrintCodeTree(const FltT_StatementBlock* code)
+void Flt_PrintCodeTree(const Flt_StatementBlock* code)
 {
 	printf("code: {\n");
 	print_statementblock(code, "top", 1);

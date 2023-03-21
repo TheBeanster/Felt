@@ -9,7 +9,7 @@ int main(int argc, char** argv)
 	printf("Testo\n%i\n", sizeof(Flt_Token));
 
 	Flt_List tokens = { 0 };
-	FltT_StatementBlock* block = Flt_ParseSourceCode("if 5 < 10 then print('hi') end");
+	Flt_StatementBlock* block = Flt_ParseSourceCode("if 5 < 10 then");
 
 	Flt_PrintCodeTree(block);
 
