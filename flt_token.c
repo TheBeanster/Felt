@@ -171,7 +171,7 @@ void Flt_PrintToken(const Flt_Token* token)
 	case Flt_TT_NUMBERLITERAL:	printf("%s", token->string); break;
 	case Flt_TT_STRINGLITERAL:	printf("\"%s\"", token->string); break;
 	case Flt_TT_IDENTIFIER:		printf("%s", token->string); break;
-	case Flt_TT_ENDLINE:		printf("TT_ENDLINE\n"); break;
+	case Flt_TT_ENDLINE:		printf("TT_ENDLINE"); break;
 	default:
 		printf("invalid");
 		break;

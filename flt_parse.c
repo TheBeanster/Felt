@@ -58,13 +58,13 @@ on_expr_end:
 
 
 
-static FltT_StatementNode* parse_expression_statement(
+static Flt_StatementNode* parse_expression_statement(
 	const Flt_Token* tokenbegin,
 	Flt_Token** nextstatement
 )
 {
-	FltT_StatementNode* node = Flt_ALLOC_TYPE(FltT_StatementNode);
-	node->type = FltT_ST_EXPRESSION;
+	Flt_StatementNode* node = Flt_ALLOC_TYPE(Flt_StatementNode);
+	node->type = Flt_ST_EXPRESSION;
 	node->stmt_expr.expression = parse_expression(tokenbegin, nextstatement);
 	if (!node->stmt_expr.expression)
 	{
@@ -78,13 +78,13 @@ static FltT_StatementNode* parse_expression_statement(
 
 
 
-static FltT_StatementNode* parse_if_statement(
+static Flt_StatementNode* parse_if_statement(
 	const Flt_Token* tokenbegin,
 	Flt_Token** nextstatement
 )
 {
-	FltT_StatementNode* node = Flt_ALLOC_TYPE(FltT_StatementNode);
-	node->type = FltT_ST_IF;
+	Flt_StatementNode* node = Flt_ALLOC_TYPE(Flt_StatementNode);
+	node->type = Flt_ST_IF;
 
 	Flt_Token* conditiontoken = tokenbegin->next;
 	Flt_ExprNode* condition = parse_expression(conditiontoken, &conditiontoken);
@@ -104,7 +104,7 @@ static FltT_StatementNode* parse_if_statement(
 
 
 
-static FltT_StatementNode* parse_statement(
+static Flt_StatementNode* parse_statement(
 	const Flt_Token* tokenbegin,
 	Flt_Token** nextstatement
 )
@@ -113,7 +113,7 @@ static FltT_StatementNode* parse_statement(
 	Flt_PrintToken(tokenbegin);
 	printf("'\n");
 
-	FltT_StatementNode* node = NULL;
+	Flt_StatementNode* node = NULL;
 
 	switch (tokenbegin->keywordid)
 	{
@@ -147,7 +147,7 @@ static Flt_StatementBlock* parse_statementblock(
 	Flt_Token* iterator = tokenbegin;
 	while (iterator)
 	{
-		FltT_StatementNode* node = parse_statement(iterator, &iterator);
+		Flt_StatementNode* node = parse_statement(iterator, &iterator);
 		if (!node) goto on_fail;
 		Flt_PushBackList(&block->statements, node);
 	}
@@ -201,11 +201,11 @@ static Flt_StatementBlock* create_debug_statementblock()
 {
 	Flt_StatementBlock* block = Flt_ALLOC_TYPE(Flt_StatementBlock);
 	
-	FltT_StatementNode* node1 = Flt_ALLOC_TYPE(FltT_StatementNode);
-	node1->type = FltT_ST_EXPRESSION;
+	Flt_StatementNode* node1 = Flt_ALLOC_TYPE(Flt_StatementNode);
+	node1->type = Flt_ST_EXPRESSION;
 	node1->stmt_expr.expression = create_debug_expr_assignment();
-	FltT_StatementNode* node2 = Flt_ALLOC_TYPE(FltT_StatementNode);
-	node2->type = FltT_ST_IF;
+	Flt_StatementNode* node2 = Flt_ALLOC_TYPE(Flt_StatementNode);
+	node2->type = Flt_ST_IF;
 	node2->stmt_if.condition = create_debug_expr_assignment();
 
 	Flt_PushBackList(&block->statements, node1);
@@ -298,16 +298,16 @@ static void print_expression(const Flt_ExprNode* expr, const char* name, int dep
 
 static void print_statementblock(const Flt_StatementBlock* block, const char* name, int depth);
 
-static void print_statement(const FltT_StatementNode* stmt, int depth)
+static void print_statement(const Flt_StatementNode* stmt, int depth)
 {
 	indent; printf("%s: {\n", flt_statementnodetype_names[stmt->type]);
 	switch (stmt->type)
 	{
-	case FltT_ST_EXPRESSION:
+	case Flt_ST_EXPRESSION:
 		print_expression(stmt->stmt_expr.expression, "expr", depth + 1);
 		break;
 
-	case FltT_ST_IF:
+	case Flt_ST_IF:
 		print_expression(stmt->stmt_if.condition, "condition", depth + 1);
 		print_statementblock(stmt->stmt_if.body_ontrue, "ontrue", depth + 1);
 		print_statementblock(stmt->stmt_if.body_onfalse, "onfalse", depth + 1);
@@ -324,7 +324,7 @@ static void print_statementblock(const Flt_StatementBlock* block, const char* na
 	if (!block) return;
 
 	indent; printf("%s: {\n", name);
-	FltT_StatementNode* iterator = block->statements.begin;
+	Flt_StatementNode* iterator = block->statements.begin;
 	while (iterator)
 	{
 		print_statement(iterator, depth + 1);

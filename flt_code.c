@@ -2,7 +2,7 @@
 
 
 
-const char* flt_statementnodetype_names[FltT_NUM_STATEMENTTYPES] =
+const char* flt_statementnodetype_names[Flt_NUM_STATEMENTTYPES] =
 {
 	"ST_EXPRESSION",
 	"ST_IF",

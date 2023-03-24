@@ -9,16 +9,16 @@
 
 typedef enum
 {
-	FltT_ST_EXPRESSION,
-	FltT_ST_IF,
-	FltT_ST_FOR,
-	FltT_ST_WHILE,
-	FltT_ST_DOWHILE,
-	FltT_ST_SCOPE,
-	FltT_NUM_STATEMENTTYPES
-} FltT_StatementNodeType;
+	Flt_ST_EXPRESSION,
+	Flt_ST_IF,
+	Flt_ST_FOR,
+	Flt_ST_WHILE,
+	Flt_ST_DOWHILE,
+	Flt_ST_SCOPE,
+	Flt_NUM_STATEMENTTYPES
+} Flt_StatementNodeType;
 
-extern const char* flt_statementnodetype_names[FltT_NUM_STATEMENTTYPES];
+extern const char* flt_statementnodetype_names[Flt_NUM_STATEMENTTYPES];
 
 
 
@@ -29,10 +29,10 @@ typedef struct Flt_StatementBlock
 
 
 
-typedef struct FltT_StatementNode
+typedef struct Flt_StatementNode
 {
-	Flt_ListLinksHeader(FltT_StatementNodeBase);
-	FltT_StatementNodeType type;
+	Flt_ListLinksHeader(Flt_StatementNodeBase);
+	Flt_StatementNodeType type;
 	union
 	{
 		struct
@@ -67,5 +67,5 @@ typedef struct FltT_StatementNode
 			Flt_StatementBlock* body;
 		} stmt_scope;
 	};
-} FltT_StatementNode;
+} Flt_StatementNode;
 
