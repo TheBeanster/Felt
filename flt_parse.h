@@ -15,7 +15,6 @@ enum
 	Flt_TT_NUMBERLITERAL,
 	Flt_TT_STRINGLITERAL,
 	Flt_TT_IDENTIFIER,
-	Flt_TT_ENDLINE,
 };
 
 
@@ -102,14 +101,15 @@ Flt_OperatorID Flt_GetOperator(const char* string);
 typedef char Flt_SeparatorID;
 enum
 {
+	Flt_SP_SEMICOLON,	// ';'
+	Flt_SP_COMMA,		// ','
 	Flt_SP_LPAREN,		// '('
 	Flt_SP_RPAREN,		// ')'
 	Flt_SP_LBRACKET,	// '['
 	Flt_SP_RBRACKET,	// ']'
 	Flt_SP_LBRACE,		// '{'
 	Flt_SP_RBRACE,		// '}'
-	Flt_SP_COMMA,		// ','
-
+	
 	Flt_NUM_SEPARATORS,
 	Flt_SP_NULL = -1,	// Invalid or non separator
 };

@@ -125,24 +125,26 @@ Flt_OperatorID Flt_GetOperator(const char* string)
 
 const char flt_separator_chars[Flt_NUM_SEPARATORS] =
 {
+	';',
+	',',
 	'(',
 	')',
 	'[',
 	']',
 	'{',
 	'}',
-	','
 };
 
 const char* flt_separatorid_names[Flt_NUM_SEPARATORS] =
 {
+	"SP_SEMICOLON",
+	"SP_COMMA",
 	"SP_LPAREN",
 	"SP_RPAREN",
 	"SP_LBRACKET",
 	"SP_RBRACKET",
 	"SP_LBRACE",
 	"SP_RBRACE",
-	"SP_COMMA",
 };
 
 Flt_SeparatorID Flt_GetSeparator(char c)
@@ -171,7 +173,6 @@ void Flt_PrintToken(const Flt_Token* token)
 	case Flt_TT_NUMBERLITERAL:	printf("%s", token->string); break;
 	case Flt_TT_STRINGLITERAL:	printf("\"%s\"", token->string); break;
 	case Flt_TT_IDENTIFIER:		printf("%s", token->string); break;
-	case Flt_TT_ENDLINE:		printf("TT_ENDLINE"); break;
 	default:
 		printf("invalid");
 		break;
@@ -189,7 +190,6 @@ void Flt_PrintTokenString(const Flt_Token* token)
 	case Flt_TT_NUMBERLITERAL:	printf("%s", token->string); break;
 	case Flt_TT_STRINGLITERAL:	printf("\"%s\"", token->string); break;
 	case Flt_TT_IDENTIFIER:		printf("%s", token->string); break;
-	case Flt_TT_ENDLINE:		printf("\\n\n"); break;
 	default:
 		printf("invalid");
 		break;

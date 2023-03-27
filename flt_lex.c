@@ -18,7 +18,7 @@ typedef enum
 	CT_SEPARATOR,
 	CT_SPACER,		// Space or tab
 	CT_ENDLINE,
-	CT_QUOTE,		// Double quotation marks for strings
+	CT_QUOTE,		// Quotation marks for strings
 	CT_COMMENT,		// Comments start with # and end with an endline
 } chartype;
 
@@ -162,15 +162,6 @@ static void push_stringliteral_token(
 	Flt_PushBackList(tokens,token);
 }
 
-static void push_endline_token(
-	Flt_List* tokens
-)
-{
-	Flt_Token* token = create_token();
-	token->type = Flt_TT_ENDLINE;
-	Flt_PushBackList(tokens,token);
-}
-
 
 
 
@@ -311,13 +302,6 @@ Flt_Bool Flt_ParseSourcecodeTokens(Flt_List* tokens, const char* sourcecode)
 				tokenchange = Flt_TRUE;
 			break;
 
-		case CT_ENDLINE:
-			// Endlines are always 1 character so push it immedietly
-			if (c == '\n') linenum++;
-			push_endline_token(tokens);
-			tokenchange = Flt_TRUE;
-			break;
-
 			// Default is error, it should be considered spacer
 		default:
 			// TODO Add warning about invalid characters
@@ -360,9 +344,6 @@ Flt_Bool Flt_ParseSourcecodeTokens(Flt_List* tokens, const char* sourcecode)
 		printf("String doesn't have closing quotes!\n");
 		goto onerror;
 	}
-
-	// Add an endline token at the end to make sure parsing works even without one
-	push_endline_token(tokens);
 
 	return Flt_TRUE;
 

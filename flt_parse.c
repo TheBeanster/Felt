@@ -228,13 +228,13 @@ Flt_StatementBlock* Flt_ParseSourceCode(const char* sourcecode)
 	for (Flt_Token* i = tokens.begin; i != NULL; i = i->next)
 	{
 		Flt_PrintTokenString(i);
-		printf(" ");
+		printf(" . ");
 	}
 	printf("\n");
 
-	Flt_StatementBlock* block = parse_statementblock(tokens.begin);
+	//Flt_StatementBlock* block = parse_statementblock(tokens.begin);
 
-	return block;
+	return NULL;
 }
 
 
