@@ -159,7 +159,7 @@ static void push_stringliteral_token(
 	Flt_Token* token = create_token();
 	token->type = Flt_TT_STRINGLITERAL;
 	token->string = Flt_CopyCutString(sourcecode, start + 1, end - 1); // Don't include quotation marks
-	Flt_PushBackList(tokens,token);
+	Flt_PushBackList(tokens, token);
 }
 
 

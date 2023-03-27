@@ -7,7 +7,7 @@
 int main(int argc, char** argv)
 {
 	Flt_List tokens = { 0 };
-	Flt_StatementBlock* block = Flt_ParseSourceCode("if (5 < 10) { print('eyo'); }");
+	Flt_StatementBlock* block = Flt_ParseSourceCode("if (5 < 10) { print(\"eyo\"); }");
 
 	Flt_PrintCodeTree(block);
 

@@ -9,7 +9,7 @@
 
 
 
-static Flt_ExprNode* read_numberliteral_node(
+static Flt_ExprNode* parse_numberliteral_node(
 	const Flt_Token* token
 )
 {
@@ -30,6 +30,9 @@ static Flt_ExprNode* parse_expression(
 
 	Flt_ExprNode* expr = Flt_ALLOC_TYPE(Flt_ExprNode);
 
+	Flt_List l_operators = { 0 };
+	Flt_List l_operands = { 0 };
+
 	Flt_Token* iterator = exprbegin;
 	while (iterator)
 	{
@@ -39,9 +42,35 @@ static Flt_ExprNode* parse_expression(
 			if ((iterator->keywordid == Flt_KW_TRUE) || (iterator->keywordid == Flt_KW_FALSE)) goto on_expr_end;
 			break;
 
-		case Flt_TT_SEPARATOR:
+		case Flt_TT_NUMBERLITERAL:
+			parse_numberliteral_node(iterator);
+			break;
+
+		case Flt_TT_STRINGLITERAL:
 
 			break;
+
+		case Flt_TT_OPERATOR:
+			
+			break;
+
+		case Flt_TT_SEPARATOR:
+			if (iterator->separatorid != Flt_SP_LPAREN)
+			{
+				
+			} else if (iterator->separatorid != Flt_SP_LBRACE) // Object definition
+			{
+
+			} else if (iterator->separatorid != Flt_SP_LBRACKET) // Array definition
+			{
+
+			} else
+				goto on_expr_end; // All other separators end the expression
+			break;
+
+		default:
+			printf("Invalid expression token\n");
+			goto on_expr_end;
 		}
 
 		iterator = iterator->next;
