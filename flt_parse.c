@@ -36,7 +36,7 @@ static Flt_ExprNode* parse_expression(
 		switch (iterator->type)
 		{
 		case Flt_TT_KEYWORD:
-			if (iterator->keywordid != Flt_KW_TRUE || iterator->keywordid != Flt_KW_FALSE) goto on_expr_end;
+			if ((iterator->keywordid == Flt_KW_TRUE) || (iterator->keywordid == Flt_KW_FALSE)) goto on_expr_end;
 			break;
 
 		case Flt_TT_SEPARATOR:
