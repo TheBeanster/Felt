@@ -179,6 +179,7 @@ static Flt_StatementNode* parse_if_statement(
 	if (condition == NULL || conditiontoken->separatorid != Flt_SP_RPAREN) // If condition doesn't end with ')'
 	{
 		printf("If statement condition expression doesn't end with a ')'\n");
+		Flt_DestroyExpression(condition);
 		return NULL;
 	}
 
@@ -266,7 +267,7 @@ static Flt_ExprNode* create_debug_expr_assignment()
 	node->op.id = Flt_OP_ASSIGN;
 	Flt_ExprNode* nodel = Flt_ALLOC_TYPE(Flt_ExprNode);
 	nodel->type = Flt_ET_VARIABLE;
-	nodel->variable = "varname";
+	nodel->identifier = "varname";
 
 	Flt_ExprNode* noder = Flt_ALLOC_TYPE(Flt_ExprNode);
 	noder->type = Flt_ET_OPERATOR;
@@ -367,9 +368,9 @@ static void print_exprnode(const Flt_ExprNode* expr, int depth)
 		indent; printf("}\n");
 		break;
 
-	case Flt_ET_NUMBERLITERAL: indent; printf("%f\n", expr->num); break;
-	case Flt_ET_STRINGLITERAL: indent; printf("\"%s\"\n", expr->str); break;
-	case Flt_ET_VARIABLE:		indent; printf("%s\n", expr->variable); break;
+	case Flt_ET_NUMBERLITERAL:	indent; printf("%f\n", expr->num); break;
+	case Flt_ET_STRINGLITERAL:	indent; printf("\"%s\"\n", expr->str); break;
+	case Flt_ET_VARIABLE:		indent; printf("%s\n", expr->identifier); break;
 
 	default:
 		break;

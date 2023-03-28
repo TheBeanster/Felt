@@ -10,3 +10,7 @@ typedef struct
 	int numargs;
 	char** argnames;
 } Flt_Function;
+
+
+
+void Flt_DestroyFunction(Flt_Function* func);

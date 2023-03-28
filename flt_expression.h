@@ -16,9 +16,9 @@ enum
 	Flt_ET_NUMBERLITERAL,
 	Flt_ET_STRINGLITERAL,
 	Flt_ET_BOOLLITERAL,
-	Flt_ET_LAMBDA,
 	Flt_ET_OBJECT,
 	Flt_ET_VARIABLE,
+	Flt_ET_CLOSURE,
 	Flt_ET_FUNCTIONCALL
 	// TODO It might be possible to have a kind of 'ET_REFRENCE' or something for variable assignments
 };
@@ -42,8 +42,14 @@ typedef struct Flt_ExprNode
 			char* chars;
 			int len;
 		} str;
-		Flt_Function* function;
-		char* variable;
+		Flt_Function* closure;
+		char* identifier;
+		struct
+		{
+			char* identifier;
+			int numargs;
+			char** argnames;
+		} functioncall;
 	};
 } Flt_ExprNode;
 
