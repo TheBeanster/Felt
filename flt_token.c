@@ -10,7 +10,6 @@
 const char* flt_keyword_strings[Flt_NUM_KEYWORDS] =
 {
 	"if",
-	"then",
 	"else",
 	"for",
 	"do",
@@ -21,14 +20,11 @@ const char* flt_keyword_strings[Flt_NUM_KEYWORDS] =
 
 	"false",
 	"true",
-
-	"end",
 };
 
 const char* flt_keywordid_names[Flt_NUM_KEYWORDS] =
 {
 	"KW_IF",
-	"KW_THEN",
 	"KW_ELSE",
 	"KW_FOR",
 	"KW_DO",
@@ -39,8 +35,6 @@ const char* flt_keywordid_names[Flt_NUM_KEYWORDS] =
 	
 	"KW_FALSE",
 	"KW_TRUE",
-	
-	"KW_END",
 };
 
 Flt_KeywordID Flt_GetKeyword(const char* string)

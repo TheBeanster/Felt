@@ -23,7 +23,6 @@ typedef char Flt_KeywordID;
 enum
 {
 	Flt_KW_IF,
-	Flt_KW_THEN,
 	Flt_KW_ELSE,
 	Flt_KW_FOR,
 	Flt_KW_DO,
@@ -34,8 +33,6 @@ enum
 
 	Flt_KW_FALSE,
 	Flt_KW_TRUE,
-
-	Flt_KW_END,
 
 	Flt_NUM_KEYWORDS,
 	Flt_KW_NULL = -1, // Invalid or non keyword

@@ -15,6 +15,7 @@ enum
 	Flt_ET_OPERATOR,
 	Flt_ET_NUMBERLITERAL,
 	Flt_ET_STRINGLITERAL,
+	Flt_ET_BOOLLITERAL,
 	Flt_ET_LAMBDA,
 	Flt_ET_OBJECT,
 	Flt_ET_VARIABLE,
@@ -35,6 +36,7 @@ typedef struct Flt_ExprNode
 			struct Flt_ExprNode* right;
 		} op;
 		double num;
+		Flt_Bool boolean;
 		struct
 		{
 			char* chars;

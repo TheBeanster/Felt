@@ -9,6 +9,18 @@
 
 
 
+static Flt_ExprNode* create_boolkw_node(
+	const Flt_Bool b
+)
+{
+	Flt_ExprNode* node = Flt_ALLOC_TYPE(Flt_ExprNode);
+	node->type = Flt_ET_BOOLLITERAL;
+	node->boolean = b;
+	return node;
+}
+
+
+
 static Flt_ExprNode* parse_numberliteral_node(
 	const Flt_Token* token
 )
@@ -21,8 +33,30 @@ static Flt_ExprNode* parse_numberliteral_node(
 
 
 
+static Flt_ExprNode* parse_stringliteral_node(
+	const Flt_Token* token
+)
+{
+	Flt_ExprNode* node = Flt_ALLOC_TYPE(Flt_ExprNode);
+	node->type = Flt_ET_STRINGLITERAL;
+	node->str.chars = _strdup(token->string);
+	node->str.len = strlen(token->string);
+	return node;
+}
+
+
+
+static void destroy_expression(
+	Flt_ExprNode* expr
+)
+{
+
+}
+
+
+
 static Flt_ExprNode* parse_expression(
-	const Flt_Token* exprbegin,
+	const Flt_Token* tokenbegin,
 	Flt_Token** exprend
 )
 {
@@ -33,44 +67,59 @@ static Flt_ExprNode* parse_expression(
 	Flt_List l_operators = { 0 };
 	Flt_List l_operands = { 0 };
 
-	Flt_Token* iterator = exprbegin;
+	Flt_Token* iterator = tokenbegin;
 	while (iterator)
 	{
 		switch (iterator->type)
 		{
+
 		case Flt_TT_KEYWORD:
 			if ((iterator->keywordid == Flt_KW_TRUE) || (iterator->keywordid == Flt_KW_FALSE)) goto on_expr_end;
+			Flt_PushBackList(&l_operands, create_boolkw_node(iterator->keywordid == Flt_KW_TRUE));
 			break;
 
 		case Flt_TT_NUMBERLITERAL:
-			parse_numberliteral_node(iterator);
+			Flt_PushBackList(&l_operands, parse_numberliteral_node(iterator));
 			break;
 
 		case Flt_TT_STRINGLITERAL:
-
-			break;
-
-		case Flt_TT_OPERATOR:
-			
+			Flt_PushBackList(&l_operands, parse_stringliteral_node(iterator));
 			break;
 
 		case Flt_TT_SEPARATOR:
-			if (iterator->separatorid != Flt_SP_LPAREN)
+			if (iterator->separatorid == Flt_SP_LPAREN)
 			{
+				if (iterator->next == NULL)
+				{
+					printf("Code ends after '('\n");
+					goto on_error;
+				}
+
+				Flt_ExprNode* subexpr = parse_expression(iterator->next, &iterator);
+				if (!subexpr) goto on_error;
 				
-			} else if (iterator->separatorid != Flt_SP_LBRACE) // Object definition
+				Flt_PushBackList(&l_operands, subexpr);
+			} else if (iterator->separatorid == Flt_SP_LBRACE) // Object definition
 			{
 
-			} else if (iterator->separatorid != Flt_SP_LBRACKET) // Array definition
+			} else if (iterator->separatorid == Flt_SP_LBRACKET) // Array definition
 			{
 
 			} else
 				goto on_expr_end; // All other separators end the expression
 			break;
 
+
+
+		case Flt_TT_OPERATOR:
+
+			break;
+
+
+
 		default:
 			printf("Invalid expression token\n");
-			goto on_expr_end;
+			goto on_error;
 		}
 
 		iterator = iterator->next;
@@ -82,6 +131,10 @@ on_expr_end:
 	printf("\n");
 	*exprend = iterator;
 	return expr;
+
+on_error:
+	Flt_FREE(expr);
+	return NULL;
 }
 
 
@@ -112,18 +165,25 @@ static Flt_StatementNode* parse_if_statement(
 	Flt_Token** nextstatement
 )
 {
-	Flt_StatementNode* node = Flt_ALLOC_TYPE(Flt_StatementNode);
-	node->type = Flt_ST_IF;
-
-	Flt_Token* conditiontoken = tokenbegin->next;
-	Flt_ExprNode* condition = parse_expression(conditiontoken, &conditiontoken);
-	
-	if (conditiontoken->keywordid != Flt_KW_THEN || condition == NULL) // If token after condition isn't 'then'
+	// Make sure token after 'if' is ( and that there is a token after that too
+	if (tokenbegin->next && tokenbegin->next->separatorid != Flt_SP_LPAREN && tokenbegin->next->next)
 	{
-		printf("If statement condition expression doesn't end with the 'then' keyword\n");
-		Flt_FREE(node);
+		printf("Expected '(' after if keyword\n");
 		return NULL;
 	}
+
+	// Parse the condition expression
+	Flt_Token* conditiontoken = tokenbegin->next->next;
+	Flt_ExprNode* condition = parse_expression(conditiontoken, &conditiontoken);
+	
+	if (condition == NULL || conditiontoken->separatorid != Flt_SP_RPAREN) // If condition doesn't end with ')'
+	{
+		printf("If statement condition expression doesn't end with a ')'\n");
+		return NULL;
+	}
+
+	Flt_StatementNode* node = Flt_ALLOC_TYPE(Flt_StatementNode);
+	node->type = Flt_ST_IF;
 	
 	node->stmt_if.condition = condition;
 
@@ -257,11 +317,11 @@ Flt_StatementBlock* Flt_ParseSourceCode(const char* sourcecode)
 	for (Flt_Token* i = tokens.begin; i != NULL; i = i->next)
 	{
 		Flt_PrintTokenString(i);
-		printf(" . ");
+		printf(" ");
 	}
 	printf("\n");
 
-	//Flt_StatementBlock* block = parse_statementblock(tokens.begin);
+	Flt_StatementBlock* block = parse_statementblock(tokens.begin);
 
 	return NULL;
 }

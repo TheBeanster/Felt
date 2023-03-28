@@ -69,3 +69,8 @@ typedef struct Flt_StatementNode
 	};
 } Flt_StatementNode;
 
+
+
+void Flt_DestroyExpression(Flt_ExprNode* expr);
+void Flt_DestroyStatement(Flt_StatementNode* stmt);
+void Flt_DestroyStatementBlock(Flt_StatementBlock* block);

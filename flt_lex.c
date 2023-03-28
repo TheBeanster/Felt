@@ -28,9 +28,9 @@ static chartype check_chartype(const char c)
 	if (isdigit(c))					return CT_NUMBER;
 	if (c == '.')					return CT_POINT;
 	if (strchr("+-/*=<>!&|^", c))	return CT_OPERATOR;
-	if (strchr("()[]{},", c))		return CT_SEPARATOR;
+	if (strchr("()[]{},;", c))		return CT_SEPARATOR;
 	if (isblank(c))					return CT_SPACER;
-	if (c == '\n' || c == ';')		return CT_ENDLINE; // Semicolon acts the same as endline
+	if (c == '\n')					return CT_ENDLINE; // Semicolon acts the same as endline
 	if (c == '\"' || c == '\'')		return CT_QUOTE;
 	if (c == '#')					return CT_COMMENT;
 	return CT_NULL;
@@ -158,7 +158,7 @@ static void push_stringliteral_token(
 {
 	Flt_Token* token = create_token();
 	token->type = Flt_TT_STRINGLITERAL;
-	token->string = Flt_CopyCutString(sourcecode, start + 1, end - 1); // Don't include quotation marks
+	token->string = Flt_CopyCutString(sourcecode, start + 1, end - start - 2); // Don't include quotation marks
 	Flt_PushBackList(tokens, token);
 }
 
@@ -283,7 +283,7 @@ Flt_Bool Flt_ParseSourcecodeTokens(Flt_List* tokens, const char* sourcecode)
 		case CT_QUOTE:
 			if (ctype == CT_ENDLINE)
 			{
-				printf("String doesn't have closing quotes!");
+				printf("String doesn't have closing quotes!\n");
 				goto onerror;
 			}
 			// String literals end when another double quote is found
