@@ -46,11 +46,14 @@ static Flt_ExprNode* parse_stringliteral_node(
 
 
 
-static void destroy_expression(
-	Flt_ExprNode* expr
+static Flt_ExprNode* parse_operator_node(
+	const Flt_Token* token
 )
 {
-
+	Flt_ExprNode* node = Flt_ALLOC_TYPE(Flt_ExprNode);
+	node->type = Flt_ET_OPERATOR;
+	node->op.id = token->operatorid;
+	return node;
 }
 
 
@@ -74,7 +77,14 @@ static Flt_ExprNode* parse_expression(
 		{
 
 		case Flt_TT_KEYWORD:
-			if ((iterator->keywordid == Flt_KW_TRUE) || (iterator->keywordid == Flt_KW_FALSE)) goto on_expr_end;
+			if (!((iterator->keywordid == Flt_KW_TRUE) || (iterator->keywordid == Flt_KW_FALSE)))
+			{
+				if (iterator->keywordid == Flt_KW_FUNCTION)
+				{
+					printf("Closure!!!\n");
+				} else
+					goto on_expr_end;
+			}
 			Flt_PushBackList(&l_operands, create_boolkw_node(iterator->keywordid == Flt_KW_TRUE));
 			break;
 
@@ -86,8 +96,9 @@ static Flt_ExprNode* parse_expression(
 			Flt_PushBackList(&l_operands, parse_stringliteral_node(iterator));
 			break;
 
+
 		case Flt_TT_SEPARATOR:
-			if (iterator->separatorid == Flt_SP_LPAREN)
+			if (iterator->separatorid == Flt_SP_LPAREN) // Subexpression
 			{
 				if (iterator->next == NULL)
 				{
@@ -97,6 +108,13 @@ static Flt_ExprNode* parse_expression(
 
 				Flt_ExprNode* subexpr = parse_expression(iterator->next, &iterator);
 				if (!subexpr) goto on_error;
+				if (iterator->separatorid != Flt_SP_RPAREN)
+				{
+					printf("Mismatching token '");
+					Flt_PrintToken(iterator);
+					printf("', expected ')'\n");
+					goto on_error;
+				}
 				
 				Flt_PushBackList(&l_operands, subexpr);
 			} else if (iterator->separatorid == Flt_SP_LBRACE) // Object definition
@@ -110,9 +128,14 @@ static Flt_ExprNode* parse_expression(
 			break;
 
 
+		case Flt_TT_IDENTIFIER:
+			
+			break;
+
+
 
 		case Flt_TT_OPERATOR:
-
+			Flt_PushBackList(&l_operators, parse_operator_node(iterator));
 			break;
 
 
@@ -129,7 +152,18 @@ on_expr_end:
 	printf("Expression end on ");
 	Flt_PrintToken(iterator);
 	printf("\n");
+
 	*exprend = iterator;
+
+	printf("Expression operators = ");
+	iterator = l_operators.begin;
+	while (iterator)
+	{
+		printf("   Op:%s   ", flt_operatorid_names[iterator->operatorid]);
+		iterator = iterator->next;
+	}
+	printf("\n");
+
 	return expr;
 
 on_error:
@@ -245,7 +279,7 @@ static Flt_StatementBlock* parse_statementblock(
 	return block;
 
 on_fail:
-	//Flt_ClearList(&block->statements, Destr)
+	Flt_ClearList(&block->statements, &Flt_DestroyStatement);
 	Flt_FREE(block);
 	return NULL;
 }
