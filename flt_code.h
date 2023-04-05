@@ -22,14 +22,14 @@ extern const char* flt_statementnodetype_names[Flt_NUM_STATEMENTTYPES];
 
 
 
-typedef struct Flt_StatementBlock
+typedef struct Flt_StatementBody
 {
 	Flt_List statements;
-} Flt_StatementBlock;
+} Flt_StatementBody;
 
 
 
-typedef struct Flt_StatementNode
+typedef struct Flt_Statement
 {
 	Flt_ListLinksHeader(Flt_StatementNodeBase);
 	Flt_StatementNodeType type;
@@ -42,35 +42,35 @@ typedef struct Flt_StatementNode
 		struct
 		{
 			Flt_ExprNode* condition;
-			Flt_StatementBlock* body_ontrue;
-			Flt_StatementBlock* body_onfalse;
+			Flt_StatementBody* body_ontrue;
+			Flt_StatementBody* body_onfalse;
 		} stmt_if;
 		struct
 		{
 			Flt_ExprNode* init;
 			Flt_ExprNode* condition;
 			Flt_ExprNode* loop;
-			Flt_StatementBlock* body;
+			Flt_StatementBody* body;
 		} stmt_for;
 		struct
 		{
 			Flt_ExprNode* condition;
-			Flt_StatementBlock* body;
+			Flt_StatementBody* body;
 		} stmt_while;
 		struct
 		{
 			Flt_ExprNode* condition;
-			Flt_StatementBlock* body;
+			Flt_StatementBody* body;
 		} stmt_dowhile;
 		struct
 		{
-			Flt_StatementBlock* body;
+			Flt_StatementBody* body;
 		} stmt_scope;
 	};
-} Flt_StatementNode;
+} Flt_Statement;
 
 
 
 void Flt_DestroyExpression(Flt_ExprNode* expr);
-void Flt_DestroyStatement(Flt_StatementNode* stmt);
-void Flt_DestroyStatementBlock(Flt_StatementBlock* block);
+void Flt_DestroyStatement(Flt_Statement* stmt);
+void Flt_DestroyStatementBody(Flt_StatementBody* block);

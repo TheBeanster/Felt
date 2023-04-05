@@ -37,10 +37,10 @@ void Flt_DestroyExpression(Flt_ExprNode* expr)
 	Flt_FREE(expr);
 }
 
-void Flt_DestroyStatement(Flt_StatementNode* stmt)
+void Flt_DestroyStatement(Flt_Statement* stmt)
 {
 }
 
-void Flt_DestroyStatementBlock(Flt_StatementBlock* block)
+void Flt_DestroyStatementBody(Flt_StatementBody* block)
 {
 }

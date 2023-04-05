@@ -13,5 +13,5 @@ void Flt_DestroyFunction(Flt_Function* func)
 			Flt_FREE(func->argnames[i]);
 		Flt_FREE(func->argnames);
 	}
-	Flt_DestroyStatementBlock(func->statements);
+	Flt_DestroyStatementBody(func->statements);
 }

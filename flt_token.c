@@ -58,6 +58,9 @@ const char* flt_operator_strings[Flt_NUM_OPERATORS] =
 	"/=",
 
 	"!",
+	"&",
+	"|",
+	"^",
 	"", // Unary negative should not be set by finding it here
 
 	"==",
@@ -71,7 +74,6 @@ const char* flt_operator_strings[Flt_NUM_OPERATORS] =
 	"-",
 	"*",
 	"/",
-	"%",
 
 	"."
 };

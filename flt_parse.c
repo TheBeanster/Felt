@@ -9,67 +9,175 @@
 
 
 
-static Flt_ExprNode* create_boolkw_node(
+static Flt_Statement* parse_statement(const Flt_Token* tokenbegin, Flt_Token** tokenend);
+static Flt_StatementBody* parse_statementbody(const Flt_Token* tokenbegin, Flt_Token** nexttoken);
+
+
+
+
+
+static Flt_StatementBody* parse_singlestatement_body(
+	const Flt_Token* tokenbegin,
+	Flt_Token** tokenend
+)
+{
+	Flt_Statement* bodytrue = parse_statement(tokenbegin, tokenend);
+	if (!bodytrue)
+	{
+		printf("Couldn't parse single statement body\n");
+		*tokenend = NULL;
+		return NULL;
+	}
+	Flt_StatementBody* body = Flt_ALLOC_TYPE(Flt_StatementBody);
+	Flt_PushBackList(&body->statements, bodytrue);
+	return body;
+}
+
+
+
+/// @brief Parses a body between {...}
+/// @param tokenbegin Pointer to token after '{'
+/// @param nexttoken The token after closing '}'
+/// @return The body in the scope
+static Flt_StatementBody* parse_scope_statementbody(
+	const Flt_Token* tokenbegin,
+	Flt_Token** tokenend
+)
+{
+	Flt_StatementBody* body = parse_statementbody(tokenbegin, &tokenbegin);
+	if (!body || !tokenbegin || tokenbegin->separatorid != Flt_SP_RBRACE)
+	{
+		printf("Scope ended without '}'\n");
+		Flt_DestroyStatementBody(body);
+		*tokenend = NULL;
+		return NULL;
+	}
+	*tokenend = tokenbegin->next;
+	return body;
+}
+
+
+
+/// @brief Parses a body that may be a single statement, or more with {...}. Used for 'if', 'for' 'while' etc...
+/// @param tokenbegin The token where the body begins
+/// @param tokenend The token after the body ends
+/// @return The body parsed
+static Flt_StatementBody* parse_possiblyscoped_statementbody(
+	const Flt_Token* tokenbegin,
+	Flt_Token** tokenend
+)
+{
+	// True condition body
+	if (tokenbegin->separatorid != Flt_SP_LBRACE)
+	{
+		// Single statement body
+		Flt_StatementBody* body = parse_singlestatement_body(tokenbegin, tokenend);
+		return body;
+	} else
+	{
+		// Scoped body
+		tokenbegin = tokenbegin->next;
+		if (!tokenbegin)
+		{
+			printf("Missing body after '{'\n"); *tokenend = NULL;  return NULL;
+		}
+		Flt_StatementBody* body = parse_statementbody(tokenbegin, &tokenbegin);
+		if (!body || !tokenbegin || tokenbegin->separatorid != Flt_SP_RBRACE)
+		{
+			printf("Scope ended without '}'\n");
+			Flt_DestroyStatementBody(body);
+			return NULL;
+		}
+		*tokenend = tokenbegin->next;
+		return body;
+	}
+}
+
+
+
+
+
+
+
+typedef struct expr_listnode
+{
+	Flt_ListNode l_both_links;
+	union
+	{
+		Flt_ListNode l_operator_links;
+		Flt_ListNode l_operand_links;
+	};
+	Flt_ExprNode* node;
+} expr_listnode;
+
+
+
+static expr_listnode* create_boolkw_node(
 	const Flt_Bool b
 )
 {
-	Flt_ExprNode* node = Flt_ALLOC_TYPE(Flt_ExprNode);
-	node->type = Flt_ET_BOOLLITERAL;
-	node->boolean = b;
+	expr_listnode* node = Flt_ALLOC_TYPE(expr_listnode);
+	node->node = Flt_ALLOC_TYPE(Flt_ExprNode);
+	node->node->type = Flt_ET_BOOLLITERAL;
+	node->node->boolean = b;
 	return node;
 }
 
-
-
-static Flt_ExprNode* parse_numberliteral_node(
+static expr_listnode* parse_numberliteral_node(
 	const Flt_Token* token
 )
 {
-	Flt_ExprNode* node = Flt_ALLOC_TYPE(Flt_ExprNode);
-	node->type = Flt_ET_NUMBERLITERAL;
-	node->num = strtod(token->string, NULL);
+	expr_listnode* node = Flt_ALLOC_TYPE(expr_listnode);
+	node->node = Flt_ALLOC_TYPE(Flt_ExprNode);
+	node->node->type = Flt_ET_NUMBERLITERAL;
+	node->node->num = strtod(token->string, NULL);
 	return node;
 }
 
-
-
-static Flt_ExprNode* parse_stringliteral_node(
+static expr_listnode* parse_stringliteral_node(
 	const Flt_Token* token
 )
 {
-	Flt_ExprNode* node = Flt_ALLOC_TYPE(Flt_ExprNode);
-	node->type = Flt_ET_STRINGLITERAL;
-	node->str.chars = _strdup(token->string);
-	node->str.len = strlen(token->string);
+	expr_listnode* node = Flt_ALLOC_TYPE(expr_listnode);
+	node->node = Flt_ALLOC_TYPE(Flt_ExprNode);
+	node->node->type = Flt_ET_STRINGLITERAL;
+	node->node->str.chars = _strdup(token->string);
+	node->node->str.len = strlen(token->string);
 	return node;
 }
 
 
 
-static Flt_ExprNode* parse_operator_node(
+static expr_listnode* parse_operator_node(
 	const Flt_Token* token
 )
 {
-	Flt_ExprNode* node = Flt_ALLOC_TYPE(Flt_ExprNode);
-	node->type = Flt_ET_OPERATOR;
-	node->op.id = token->operatorid;
+	expr_listnode* node = Flt_ALLOC_TYPE(expr_listnode);
+	node->node = Flt_ALLOC_TYPE(Flt_ExprNode);
+	node->node->type = Flt_ET_OPERATOR;
+	node->node->op.id = token->operatorid;
 	return node;
 }
 
 
 
+/// @brief Parses an expression. This can be any expression such as if conditions or loop iterators
+/// @param tokenbegin The token the expression begins at
+/// @param tokenend Will be set to the last token found of the expression. '1 + 2;' will point to ';'. This could be null!
+/// @return The top node of the expression tree generated
 static Flt_ExprNode* parse_expression(
 	const Flt_Token* tokenbegin,
-	Flt_Token** exprend
+	Flt_Token** tokenend
 )
 {
 	printf("Parsing expression\n");
 
 	Flt_ExprNode* expr = Flt_ALLOC_TYPE(Flt_ExprNode);
 
-	Flt_List l_operators = { 0 };
-	Flt_List l_operands = { 0 };
-
+	Flt_List l_operators = { 0 }; // List of all operators
+	Flt_List l_operands = { 0 }; // List of all operands
+	Flt_List l_both = { 0 }; // List of all operands and operators
+	
 	Flt_Token* iterator = tokenbegin;
 	while (iterator)
 	{
@@ -77,6 +185,7 @@ static Flt_ExprNode* parse_expression(
 		{
 
 		case Flt_TT_KEYWORD:
+		{
 			if (!((iterator->keywordid == Flt_KW_TRUE) || (iterator->keywordid == Flt_KW_FALSE)))
 			{
 				if (iterator->keywordid == Flt_KW_FUNCTION)
@@ -85,17 +194,27 @@ static Flt_ExprNode* parse_expression(
 				} else
 					goto on_expr_end;
 			}
-			Flt_PushBackList(&l_operands, create_boolkw_node(iterator->keywordid == Flt_KW_TRUE));
+			expr_listnode* n = create_boolkw_node(iterator->keywordid == Flt_KW_TRUE);
+			Flt_PushBackList(&l_operands, &n->l_operand_links);
+			Flt_PushBackList(&l_both, &n->l_both_links);
+		}
 			break;
 
 		case Flt_TT_NUMBERLITERAL:
-			Flt_PushBackList(&l_operands, parse_numberliteral_node(iterator));
+		{
+			expr_listnode* n = parse_numberliteral_node(iterator);
+			Flt_PushBackList(&l_operands, &n->l_operand_links);
+			Flt_PushBackList(&l_both, &n->l_both_links);
+		}
 			break;
 
 		case Flt_TT_STRINGLITERAL:
-			Flt_PushBackList(&l_operands, parse_stringliteral_node(iterator));
+		{
+			expr_listnode* n = parse_stringliteral_node(iterator);
+			Flt_PushBackList(&l_operands, &n->l_operand_links);
+			Flt_PushBackList(&l_both, &n->l_both_links);
+		}
 			break;
-
 
 		case Flt_TT_SEPARATOR:
 			if (iterator->separatorid == Flt_SP_LPAREN) // Subexpression
@@ -106,8 +225,9 @@ static Flt_ExprNode* parse_expression(
 					goto on_error;
 				}
 
-				Flt_ExprNode* subexpr = parse_expression(iterator->next, &iterator);
-				if (!subexpr) goto on_error;
+				expr_listnode* subexpr = Flt_ALLOC_TYPE(expr_listnode);
+				subexpr->node = parse_expression(iterator->next, &iterator);
+				if (!subexpr->node) goto on_error;
 				if (iterator->separatorid != Flt_SP_RPAREN)
 				{
 					printf("Mismatching token '");
@@ -116,7 +236,8 @@ static Flt_ExprNode* parse_expression(
 					goto on_error;
 				}
 				
-				Flt_PushBackList(&l_operands, subexpr);
+				Flt_PushBackList(&l_operands, &subexpr->l_operand_links);
+				Flt_PushBackList(&l_both, &subexpr->l_both_links);
 			} else if (iterator->separatorid == Flt_SP_LBRACE) // Object definition
 			{
 
@@ -135,7 +256,11 @@ static Flt_ExprNode* parse_expression(
 
 
 		case Flt_TT_OPERATOR:
-			Flt_PushBackList(&l_operators, parse_operator_node(iterator));
+		{
+			expr_listnode* n = parse_operator_node(iterator);
+			Flt_PushBackList(&l_operators, &n->l_operator_links);
+			Flt_PushBackList(&l_both, &n->l_both_links);
+		}
 			break;
 
 
@@ -153,14 +278,14 @@ on_expr_end:
 	Flt_PrintToken(iterator);
 	printf("\n");
 
-	*exprend = iterator;
+	*tokenend = iterator;
 
 	printf("Expression operators = ");
-	iterator = l_operators.begin;
-	while (iterator)
+	expr_listnode* iter = l_operators.begin;
+	while (iter)
 	{
-		printf("   Op:%s   ", flt_operatorid_names[iterator->operatorid]);
-		iterator = iterator->next;
+		printf("   Op:%s   ", flt_operatorid_names[iter->node->op.id]);
+		iter = iter->l_operator_links.next;
 	}
 	printf("\n");
 
@@ -174,29 +299,37 @@ on_error:
 
 
 
-static Flt_StatementNode* parse_expression_statement(
+static Flt_Statement* parse_expression_statement(
 	const Flt_Token* tokenbegin,
 	Flt_Token** nextstatement
 )
 {
-	Flt_StatementNode* node = Flt_ALLOC_TYPE(Flt_StatementNode);
-	node->type = Flt_ST_EXPRESSION;
-	node->stmt_expr.expression = parse_expression(tokenbegin, nextstatement);
-	if (!node->stmt_expr.expression)
+	Flt_Statement* stmt = Flt_ALLOC_TYPE(Flt_Statement);
+	stmt->type = Flt_ST_EXPRESSION;
+	stmt->stmt_expr.expression = parse_expression(tokenbegin, nextstatement);
+	if (!stmt->stmt_expr.expression)
 	{
 		printf("Couldn't parse expression statement\n");
-		Flt_FREE(node);
+		Flt_FREE(stmt);
 		return NULL;
 	}
-	return node;
+	if ((*nextstatement)->separatorid != Flt_SP_SEMICOLON) // Expression statement must end on semicolon
+	{
+		printf("Expression statement did not end in a vaild way\n");
+		Flt_DestroyStatement(stmt);
+		return NULL;
+	}
+	*nextstatement = (*nextstatement)->next;
+	
+	return stmt;
 }
 
 
 
 
-static Flt_StatementNode* parse_if_statement(
+static Flt_Statement* parse_if_statement(
 	const Flt_Token* tokenbegin,
-	Flt_Token** nextstatement
+	Flt_Token** tokenend
 )
 {
 	// Make sure token after 'if' is ( and that there is a token after that too
@@ -207,80 +340,122 @@ static Flt_StatementNode* parse_if_statement(
 	}
 
 	// Parse the condition expression
-	Flt_Token* conditiontoken = tokenbegin->next->next;
-	Flt_ExprNode* condition = parse_expression(conditiontoken, &conditiontoken);
-	
-	if (condition == NULL || conditiontoken->separatorid != Flt_SP_RPAREN) // If condition doesn't end with ')'
+	Flt_Token* token = tokenbegin->next->next;
+	Flt_ExprNode* condition = parse_expression(token, &token);
+	if (!condition || !token || token->separatorid != Flt_SP_RPAREN || !token->next) // If condition doesn't end with ')'
 	{
-		printf("If statement condition expression doesn't end with a ')'\n");
+		printf("Couldn't parse if statement condition expression\n");
 		Flt_DestroyExpression(condition);
+		*tokenend = NULL;
 		return NULL;
 	}
 
-	Flt_StatementNode* node = Flt_ALLOC_TYPE(Flt_StatementNode);
-	node->type = Flt_ST_IF;
-	
-	node->stmt_if.condition = condition;
+	Flt_Statement* stmt = Flt_ALLOC_TYPE(Flt_Statement);
+	stmt->type = Flt_ST_IF;
+	stmt->stmt_if.condition = condition;
 
-	*nextstatement = conditiontoken->next;
-	return node;
+	stmt->stmt_if.body_ontrue = parse_possiblyscoped_statementbody(token->next, &token);
+	if (!stmt->stmt_if.body_ontrue) goto on_error;
+
+	if (token && token->keywordid == Flt_KW_ELSE && token->next)
+	{
+		// There is an else body
+		stmt->stmt_if.body_onfalse = parse_possiblyscoped_statementbody(token->next, &token);
+		if (!stmt->stmt_if.body_onfalse) goto on_error;
+	}
+
+	*tokenend = token;
+	return stmt;
+
+on_error:
+	// Free everything
+	*tokenend = NULL;
+	return NULL;
 }
 
 
 
-static Flt_StatementNode* parse_statement(
+static Flt_Statement* parse_statement(
 	const Flt_Token* tokenbegin,
-	Flt_Token** nextstatement
+	Flt_Token** tokenend
 )
 {
-	printf("Parsing statement starting with '");
+	printf(" > Parsing statement starting with '");
 	Flt_PrintToken(tokenbegin);
 	printf("'\n");
 
-	Flt_StatementNode* node = NULL;
+	Flt_Statement* statement = NULL;
 
 	switch (tokenbegin->keywordid)
 	{
+
 	case Flt_KW_IF: 
-		node = parse_if_statement(tokenbegin, nextstatement);
-		if (!node)
+		statement = parse_if_statement(tokenbegin, tokenend);
+		if (!statement)
 		{
 			printf("Failed to parse if statement\n");
 			return NULL;
 		}
-		return node;
+		return statement;
+
+
 
 	default:
-		// If statement doesn't start with a keyword then it is an expression
-		parse_expression_statement(tokenbegin, nextstatement);
-		break;
+		// If statement doesn't start with a keyword then it is an expression, scope or invalid
+
+		switch (tokenbegin->type)
+		{
+		case Flt_TT_IDENTIFIER:
+		case Flt_TT_NUMBERLITERAL:
+			statement = parse_expression_statement(tokenbegin, &tokenbegin);
+			if (!statement)
+			{
+				printf("Failed to parse expression statement\n");
+				return NULL;
+			}
+			*tokenend = tokenbegin;
+			return statement;
+
+		default:
+			printf("Invalid statement start '");
+			Flt_PrintToken(tokenbegin);
+			printf("'\n");
+			*tokenend = tokenbegin;
+			return NULL;
+		}
+		
 	}
 
-	*nextstatement = NULL;
-	return NULL;
+	
 }
 
 
 
-static Flt_StatementBlock* parse_statementblock(
-	const Flt_Token* tokenbegin
+static Flt_StatementBody* parse_statementbody(
+	const Flt_Token* tokenbegin,
+	Flt_Token** nexttoken
 )
 {
-	Flt_StatementBlock* block = Flt_ALLOC_TYPE(Flt_StatementBlock);
+	Flt_StatementBody* body = Flt_ALLOC_TYPE(Flt_StatementBody);
 	
 	Flt_Token* iterator = tokenbegin;
 	while (iterator)
 	{
-		Flt_StatementNode* node = parse_statement(iterator, &iterator);
-		if (!node) goto on_fail;
-		Flt_PushBackList(&block->statements, node);
+		Flt_Statement* node = parse_statement(iterator, &iterator);
+		if (!node)
+		{
+			*nexttoken = iterator;
+			return body;
+		}
+		Flt_PushBackList(&body->statements, node);
 	}
 
-	return block;
+	*nexttoken = NULL;
+	return body;
 
 on_fail:
-	Flt_ClearList(&block->statements, &Flt_DestroyStatement);
-	Flt_FREE(block);
+	Flt_ClearList(&body->statements, &Flt_DestroyStatement);
+	Flt_FREE(body);
 	return NULL;
 }
 
@@ -290,57 +465,7 @@ on_fail:
 
 
 
-
-
-
-
-static Flt_ExprNode* create_debug_expr_assignment()
-{
-	Flt_ExprNode* node = Flt_ALLOC_TYPE(Flt_ExprNode);
-	node->type = Flt_ET_OPERATOR;
-	node->op.id = Flt_OP_ASSIGN;
-	Flt_ExprNode* nodel = Flt_ALLOC_TYPE(Flt_ExprNode);
-	nodel->type = Flt_ET_VARIABLE;
-	nodel->identifier = "varname";
-
-	Flt_ExprNode* noder = Flt_ALLOC_TYPE(Flt_ExprNode);
-	noder->type = Flt_ET_OPERATOR;
-	noder->op.id = Flt_OP_ADDITION;
-
-	Flt_ExprNode* noderl = Flt_ALLOC_TYPE(Flt_ExprNode);
-	noderl->type = Flt_ET_NUMBERLITERAL;
-	noderl->num = 5;
-	Flt_ExprNode* noderr = Flt_ALLOC_TYPE(Flt_ExprNode);
-	noderr->type = Flt_ET_NUMBERLITERAL;
-	noderr->num = 7;
-	noder->op.left = noderl;
-	noder->op.right = noderr;
-
-	node->op.left = nodel;
-	node->op.right = noder;
-	return node;
-}
-
-static Flt_StatementBlock* create_debug_statementblock()
-{
-	Flt_StatementBlock* block = Flt_ALLOC_TYPE(Flt_StatementBlock);
-	
-	Flt_StatementNode* node1 = Flt_ALLOC_TYPE(Flt_StatementNode);
-	node1->type = Flt_ST_EXPRESSION;
-	node1->stmt_expr.expression = create_debug_expr_assignment();
-	Flt_StatementNode* node2 = Flt_ALLOC_TYPE(Flt_StatementNode);
-	node2->type = Flt_ST_IF;
-	node2->stmt_if.condition = create_debug_expr_assignment();
-
-	Flt_PushBackList(&block->statements, node1);
-	Flt_PushBackList(&block->statements, node2);
-}
-
-
-
-
-
-Flt_StatementBlock* Flt_ParseSourceCode(const char* sourcecode)
+Flt_StatementBody* Flt_ParseSourceCode(const char* sourcecode)
 {
 	Flt_List tokens = { 0 };
 	if (!Flt_ParseSourcecodeTokens(&tokens, sourcecode))
@@ -356,7 +481,9 @@ Flt_StatementBlock* Flt_ParseSourceCode(const char* sourcecode)
 	}
 	printf("\n");
 
-	Flt_StatementBlock* block = parse_statementblock(tokens.begin);
+	Flt_Token endtoken = { 0 };
+	Flt_StatementBody* body = parse_statementbody(tokens.begin, &endtoken);
+	Flt_PrintToken(&endtoken);
 
 	return NULL;
 }
@@ -420,9 +547,9 @@ static void print_expression(const Flt_ExprNode* expr, const char* name, int dep
 
 
 
-static void print_statementblock(const Flt_StatementBlock* block, const char* name, int depth);
+static void print_statementbody(const Flt_StatementBody* body, const char* name, int depth);
 
-static void print_statement(const Flt_StatementNode* stmt, int depth)
+static void print_statement(const Flt_Statement* stmt, int depth)
 {
 	indent; printf("%s: {\n", flt_statementnodetype_names[stmt->type]);
 	switch (stmt->type)
@@ -433,8 +560,8 @@ static void print_statement(const Flt_StatementNode* stmt, int depth)
 
 	case Flt_ST_IF:
 		print_expression(stmt->stmt_if.condition, "condition", depth + 1);
-		print_statementblock(stmt->stmt_if.body_ontrue, "ontrue", depth + 1);
-		print_statementblock(stmt->stmt_if.body_onfalse, "onfalse", depth + 1);
+		print_statementbody(stmt->stmt_if.body_ontrue, "ontrue", depth + 1);
+		print_statementbody(stmt->stmt_if.body_onfalse, "onfalse", depth + 1);
 		break;
 
 	default:
@@ -443,12 +570,12 @@ static void print_statement(const Flt_StatementNode* stmt, int depth)
 	indent; printf("}\n");
 }
 
-static void print_statementblock(const Flt_StatementBlock* block, const char* name, int depth)
+static void print_statementbody(const Flt_StatementBody* body, const char* name, int depth)
 {
-	if (!block) return;
+	if (!body) return;
 
 	indent; printf("%s: {\n", name);
-	Flt_StatementNode* iterator = block->statements.begin;
+	Flt_Statement* iterator = body->statements.begin;
 	while (iterator)
 	{
 		print_statement(iterator, depth + 1);
@@ -459,10 +586,10 @@ static void print_statementblock(const Flt_StatementBlock* block, const char* na
 
 
 
-void Flt_PrintCodeTree(const Flt_StatementBlock* code)
+void Flt_PrintCodeTree(const Flt_StatementBody* code)
 {
 	printf("code: {\n");
-	print_statementblock(code, "top", 1);
+	print_statementbody(code, "top", 1);
 	printf("}\n");
 }
 

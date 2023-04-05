@@ -6,7 +6,7 @@
 
 typedef struct
 {
-	struct Flt_StatementBlock* statements;
+	struct Flt_StatementBody* statements;
 	int numargs;
 	char** argnames;
 } Flt_Function;

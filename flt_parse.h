@@ -144,8 +144,8 @@ void Flt_DestroyToken(Flt_Token* token);
 
 Flt_Bool Flt_ParseSourcecodeTokens(Flt_List* tokens, const char* sourcecode);
 
-struct Flt_StatementBlock* Flt_ParseSourceCode(const char* sourcecode);
+struct Flt_StatementBody* Flt_ParseSourceCode(const char* sourcecode);
 
 
 
-void Flt_PrintCodeTree(const struct Flt_StatementBlock* code);
+void Flt_PrintCodeTree(const struct Flt_StatementBody* code);
