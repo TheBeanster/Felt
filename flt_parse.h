@@ -27,13 +27,13 @@ enum
 	Flt_KW_FOR,
 	Flt_KW_DO,
 	Flt_KW_WHILE,
-
+	
 	Flt_KW_FUNCTION,
 	Flt_KW_RETURN,
-
+	
 	Flt_KW_FALSE,
 	Flt_KW_TRUE,
-
+	
 	Flt_NUM_KEYWORDS,
 	Flt_KW_NULL = -1, // Invalid or non keyword
 };

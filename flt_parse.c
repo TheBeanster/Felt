@@ -179,7 +179,7 @@ static Flt_ExprNode* parse_expression(
 	Flt_List l_both = { 0 }; // List of all operands and operators
 	
 	Flt_Token* iterator = tokenbegin;
-	while (iterator)
+	while (1)
 	{
 		switch (iterator->type)
 		{
@@ -250,7 +250,9 @@ static Flt_ExprNode* parse_expression(
 
 
 		case Flt_TT_IDENTIFIER:
-			
+			expr_listnode* n = parse_operator_node(iterator);
+			Flt_PushBackList(&l_operands, &subexpr->l_operand_links);
+			Flt_PushBackList(&l_both, &subexpr->l_both_links);
 			break;
 
 
@@ -270,6 +272,7 @@ static Flt_ExprNode* parse_expression(
 			goto on_error;
 		}
 
+		if (!iterator->next) break;
 		iterator = iterator->next;
 	}
 
@@ -277,7 +280,6 @@ on_expr_end:
 	printf("Expression end on ");
 	Flt_PrintToken(iterator);
 	printf("\n");
-
 	*tokenend = iterator;
 
 	printf("Expression operators = ");

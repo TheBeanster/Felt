@@ -7,7 +7,7 @@
 int main(int argc, char** argv)
 {
 	Flt_List tokens = { 0 };
-	Flt_StatementBody* block = Flt_ParseSourceCode("if (5 < 10 + 1) 8 + 9; else 6 + 7; 3 + 4;");
+	Flt_StatementBody* block = Flt_ParseSourceCode("a = 3 + 3");
 
 	Flt_PrintCodeTree(block);
 
